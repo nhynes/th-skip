@@ -1,4 +1,4 @@
-VALBATCHES = 20
+VALBATCHES = 100
 
 (model, workers, opts, state) ->
   {:gpuSents, :gpuPrevSents, :gpuNextSents, :crit} = state
@@ -31,6 +31,8 @@ VALBATCHES = 20
 
     math.randomseed(saveseed)
     torch.manualSeed(saveseed)
+
+    valLoss /= VALBATCHES
 
     state.valPerf = valLoss
     print string.format('Val loss: %g', valLoss)
