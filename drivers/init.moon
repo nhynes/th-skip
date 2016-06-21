@@ -9,8 +9,8 @@ dofile(thisfile 'LMCriterion.moon')
 
 init = (model, workers, opts) ->
   crit = with nn.ParallelCriterion!
-    \add nn.SequencerCriterion(nn.LMCriterion!)
-    \add nn.SequencerCriterion(nn.LMCriterion!)
+    \add nn.LMCriterion!
+    \add nn.LMCriterion!
 
   state =
     gpuSents: torch.CudaTensor(opts.batchSize, opts.sentlen)

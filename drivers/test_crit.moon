@@ -8,7 +8,7 @@ import thisfile from require 'paths'
 
 dofile(thisfile 'LMCriterion.moon')
 
-crit = nn.SequencerCriterion(nn.LMCriterion!)\cuda!
+crit = nn.LMCriterion!\cuda!
 
 targets = torch.CudaTensor{ -- sent1    sent2    sent3
   {1, 1, 1},                -- blah     blah     blah
