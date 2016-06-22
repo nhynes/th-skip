@@ -40,7 +40,9 @@ Model.__init = (opts) =>
     \add cudnn.GRU(2*opts.dim + wembDim, opts.dim, opts.nRNNs)
     \add nn.Narrow(1, 1, -2) -- output after trailing </s> is forwarded is junk
     \add nn.TemporalConvolution(opts.dim, opts.vocabSize, 1)
-    \add cudnn.LogSoftMax!
+    \add nn.Transpose({1, 3})
+    \add cudnn.SpatialLogSoftMax!
+    \add nn.Transpose({3, 1})
 
   decPrev = with decNext\clone!
     \applyToModules (mod) -> mod\reset!
