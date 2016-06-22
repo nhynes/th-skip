@@ -7,17 +7,21 @@ require 'optim'
 
   state.trainLoss = 0
 
-  optimState =
-    learningRate: opts.lr,
-    beta1: 0.9,
-    beta2: 0.999,
-    epsilon: 1e-8,
-    -- learningRateDecay: 0,
-    -- momentum: 0.9,
-    -- nesterov: true,
-    -- dampening: 0,
-    -- weightDecay: 0
+  optimState = learningRate: opts.lr
 
+  if opts.optim == 'sgd'
+    with optimState
+      .beta = 0.9
+      .beta2 = 0.999
+      .epsilon = 1e-8
+  else
+    with optimState
+      .momentum = 0.9
+      .nesterov = true
+      .dampening = 0
+      .weightDecay = 5e-4
+
+  optimizer = opts.optim == 'sgd' and optim.sgd or optim.adam
   params, gradParams = model\getParameters!
 
   f = -> crit.output, gradParams
@@ -38,7 +42,7 @@ require 'optim'
     model\zeroGradParameters!
     crit\backward(model.output, target)
     model\backward(input, crit.gradInput)
-    optim.adam(f, params, optimState)
+    optimizer(f, params, optimState)
 
     if state.t % opts.dispfreq == 0
       print string.format('Train loss: %g', state.trainLoss/opts.dispfreq)

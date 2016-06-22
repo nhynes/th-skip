@@ -26,6 +26,7 @@ parse = (arg={}) ->
 
     -- Training
     \option '-lr', 0.001, 'learning rate'
+    \option '-optim', 'adam', 'optimizer to use (adam|sgd)'
     \option '-niters', -1, 'number of iterations for which to run (-1 is forever)'
     \option '-dispfreq', 100, 'number of iterations between printing train loss'
     \option '-valfreq', 100, 'number of iterations between validations'
