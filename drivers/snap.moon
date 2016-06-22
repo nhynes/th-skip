@@ -4,11 +4,11 @@ require 'dpnn'
   OUTFILE_TMP = opts.snapfile..'_i%s_v%.3f.t7'
 
   serializer = nn.Serial(model)\mediumSerial!
-  bestPerf = -math.huge
+  bestLoss = math.huge
 
   ->
-    if state.valPerf > bestPerf
-      bestPerf = state.valPerf
-      outfile = string.format OUTFILE_TMP, state.t, bestPerf
+    if state.valLoss <= bestLoss
+      bestLoss = state.valLoss
+      outfile = string.format OUTFILE_TMP, state.t, bestLoss
       print 'Saving model to '..outfile..'...'
       torch.save outfile, serializer

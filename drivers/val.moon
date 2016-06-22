@@ -34,7 +34,7 @@ VALBATCHES = 100
 
     valLoss /= VALBATCHES
 
-    state.valPerf = valLoss
+    state.valLoss = valLoss
     print string.format('Val loss: %g', valLoss)
 
     collectgarbage!
