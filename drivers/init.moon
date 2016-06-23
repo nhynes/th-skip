@@ -1,6 +1,9 @@
 require 'torch'
 require 'cutorch'
+require 'nn'
 require 'rnn'
+require 'cunn'
+_ = require 'moses'
 
 import dofile from require 'moonscript'
 import thisfile from require 'paths'
@@ -11,13 +14,14 @@ init = (model, workers, opts) ->
   crit = with nn.ParallelCriterion!
     \add nn.LMCriterion!
     \add nn.LMCriterion!
+    \cuda!
 
-  state =
-    gpuSents: torch.CudaTensor(opts.batchSize, opts.sentlen)
-    gpuNextSents: torch.CudaTensor(opts.batchSize, opts.sentlen)
-    gpuPrevSents: torch.CudaTensor(opts.batchSize, opts.sentlen)
-    crit: crit\cuda!
-    t: 0
+  state = _.defaults opts.savedState or {},
+      gpuSents: torch.CudaTensor(opts.batchSize, opts.sentlen)
+      gpuNextSents: torch.CudaTensor(opts.batchSize, opts.sentlen)
+      gpuPrevSents: torch.CudaTensor(opts.batchSize, opts.sentlen)
+      crit: crit
+      t: 0
 
   drivers = {}
   lazyDrivers = {}

@@ -12,23 +12,29 @@ drivers = dofile 'drivers/init.moon'
 
 opts = args.parse arg
 
-torch.setdefaulttensortype 'torch.FloatTensor'
-torch.manualSeed opts.seed
-math.randomseed opts.seed
+torch.setdefaulttensortype('torch.FloatTensor')
+torch.manualSeed(opts.seed)
+math.randomseed(opts.seed)
 
-cutorch.setDevice opts.gpu+1
-
-workers = loader.init opts
+cutorch.setDevice(opts.gpu+1)
 
 model = nil
 if paths.filep opts.loadsnap
   print 'Loading model from '..opts.loadsnap
-  model = torch.load opts.loadsnap
+  require 'dpnn'
+  snap = torch.load(opts.loadsnap)
+  model = snap.model\get(1)
+  newOpts = _.pick(opts, 'loadsnap', 'niters', 'dispfreq', 'valfreq', 'savefreq')
+  opts = _.extend(snap.opts, newOpts)
+  opts.savedState = snap.state
+  print 'Resuming training from iteration '..opts.savedState.t
 else
   model = Model(opts)
 model\cuda!
 
-train, val, snap = drivers.init model, workers, opts
+workers = loader.init(opts)
+
+train, val, snap = drivers.init(model, workers, opts)
 
 done = ->
   workers\addjob (-> dataLoader\terminate!), ->

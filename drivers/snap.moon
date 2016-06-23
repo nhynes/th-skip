@@ -1,14 +1,20 @@
 require 'dpnn'
+_ = require 'moses'
 
 (model, workers, opts, state) ->
   OUTFILE_TMP = opts.snapfile..'_i%s_v%.3f.t7'
 
   serializer = nn.Serial(model)\mediumSerial!
-  bestLoss = math.huge
+  state.bestLoss = state.bestLoss or math.huge
 
   ->
-    if state.valLoss <= bestLoss
-      bestLoss = state.valLoss
-      outfile = string.format OUTFILE_TMP, state.t, bestLoss
+    if state.valLoss <= state.bestLoss
+      state.bestLoss = state.valLoss
+
+      outfile = string.format OUTFILE_TMP, state.t, state.bestLoss
+
+      saveState = _.pick(state, 't', 'optimState', 'bestLoss')
+
       print 'Saving model to '..outfile..'...'
-      torch.save outfile, serializer
+      model\training!
+      torch.save outfile, {opts: opts, model: serializer, state: saveState}

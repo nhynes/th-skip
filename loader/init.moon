@@ -1,4 +1,5 @@
 require 'hdf5'
+_ = require 'moses'
 threads = require 'threads'
 threads.serialization 'threads.sharedserialize'
 
@@ -26,6 +27,8 @@ init = (opts) ->
   dataVal = loadPartition(dsH5, 'val')
   dsH5\close!
 
+  loaderOpts = _.omit(opts, 'savedState')
+
   if nworkers > 0
     return threads.Threads nworkers,
       ->
@@ -36,10 +39,10 @@ init = (opts) ->
       (tid) ->
         math.randomseed seed+tid
         torch.manualSeed seed+tid
-        dataLoader = DataLoader(dataTrain, dataVal, opts)
+        dataLoader = DataLoader(dataTrain, dataVal, loaderOpts)
   else -- single threaded data loading. useful for debugging
     require 'loader.DataLoader'
-    dataLoader = DataLoader(dataTrain, dataVal, opts)
+    dataLoader = DataLoader(dataTrain, dataVal, loaderOpts)
     return {
       addjob: (f1, f2) => f2(f1())
       synchronize: =>

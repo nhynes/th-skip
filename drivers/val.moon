@@ -3,8 +3,6 @@ VALBATCHES = 100
 (model, workers, opts, state) ->
   {:gpuSents, :gpuPrevSents, :gpuNextSents, :crit} = state
 
-  -- N = VALBATCHES * opts.batchSize
-
   ->
     model\evaluate!
 

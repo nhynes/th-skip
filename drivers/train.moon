@@ -3,23 +3,27 @@ require 'cutorch'
 require 'optim'
 
 (model, workers, opts, state) ->
-  {:gpuSents, :gpuPrevSents, :gpuNextSents, :crit} = state
+  {:gpuSents, :gpuPrevSents, :gpuNextSents, :crit, :optimState} = state
 
   state.trainLoss = 0
 
-  optimState = learningRate: opts.lr
+  if optimState == nil
+    optimState =
+      learningRate: opts.lr
+      weightDecay: 5e-4
 
-  if opts.optim == 'sgd'
-    with optimState
-      .beta = 0.9
-      .beta2 = 0.999
-      .epsilon = 1e-8
-  else
-    with optimState
-      .momentum = 0.9
-      .nesterov = true
-      .dampening = 0
-      .weightDecay = 5e-4
+    if opts.optim == 'sgd'
+      with optimState
+        .momentum = 0.9
+        .nesterov = true
+        .dampening = 0
+    else
+      with optimState
+        .beta = 0.9
+        .beta2 = 0.999
+        .epsilon = 1e-8
+
+    state.optimState = optimState
 
   optimizer = opts.optim == 'sgd' and optim.sgd or optim.adam
   params, gradParams = model\getParameters!
