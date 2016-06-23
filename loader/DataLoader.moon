@@ -3,7 +3,6 @@ _ = require 'moses'
 
 DataLoader = torch.class('DataLoader')
 
-
 UNK, SOR, EOR, EOS = 1, 2, 3, 4
 
 groupByLen = (data) ->
