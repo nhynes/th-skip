@@ -11,19 +11,19 @@ ContextTable.__init = (dimension) =>
 ContextTable.updateOutput = (input) =>
   [==[
     input: {base, context}
-      base - seqlen x batchSize x m
+      base - batchSize x seqLen x m
       context - batchSize x n
-    output: seqlen x batchSize x m+n
+    output: batchSize x seqlen x m+n
   ]==]
   base, ctx = input[1], input[2]
 
-  seqlen, batchSize, baseDim = base\size(1), base\size(2), base\size(3)
+  batchSize, seqlen, baseDim = base\size(1), base\size(2), base\size(3)
 
   ctxDim = ctx\size(2)
-  repCtx = ctx\view(1, batchSize, ctxDim)\expand(seqlen, batchSize, ctxDim)
+  repCtx = ctx\view(batchSize, 1, ctxDim)\expand(batchSize, seqlen, ctxDim)
 
   with @output
-    \resize(seqlen, batchSize, baseDim+ctxDim)
+    \resize(batchSize, seqlen, baseDim+ctxDim)
     \narrow(3, 1, baseDim)\copy(base)
     \narrow(3, baseDim+1, ctxDim)\copy(repCtx)
 
@@ -34,6 +34,6 @@ ContextTable.updateGradInput = (input, gradOutput) =>
   @gradInput[1]\resizeAs(base)\copy(gradOutput\narrow(3, 1, baseDim))
 
   gradCtx = gradOutput\narrow(3, baseDim+1, ctxDim)
-  @gradInput[2]\resizeAs(ctx)\view(1, -1, ctxDim)\sum(gradCtx, 1)
+  @gradInput[2]\resizeAs(ctx)\view(-1, 1, ctxDim)\sum(gradCtx, 2)
 
   @gradInput

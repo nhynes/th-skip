@@ -20,7 +20,7 @@ VALBATCHES = 100
           gpuNextSents\resize(batchNextSents\size!)\copy(batchNextSents)
 
           input = {gpuSents, gpuPrevSents, gpuNextSents}
-          target = {gpuPrevSents\t!\sub(2, -1), gpuNextSents\t!\sub(2, -1)}
+          target = {gpuPrevSents[{{}, {2, -1}}], gpuNextSents[{{}, {2, -1}}]}
 
           model\forward(input)
           valLoss += crit\forward(model.output, target)

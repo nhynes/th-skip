@@ -23,29 +23,24 @@ Model.__init = (opts) =>
   lut = nn.LookupTable(nWords+3, wembDim) -- unk, <r>, </r>
   lut.weight\sub(4, -1)\copy(w2v)
 
-  lutT = with nn.Sequential!
-    \add lut
-    \add nn.Transpose({1, 2})
-
-  lutDecNext = lutT\clone('weight', 'gradWeight')()
-  lutDecPrev = lutT\clone('weight', 'gradWeight')()
+  lutDecNext = lut\clone('weight', 'gradWeight')()
+  lutDecPrev = lut\clone('weight', 'gradWeight')()
 
   encoder = with nn.Sequential!
-    \add lutT
-    \add cudnn.BGRU(wembDim, opts.dim, opts.nRNNs)
-    \add nn.Select(1, -1)
+    \add lut
+    \add cudnn.BGRU(wembDim, opts.dim, opts.nRNNs, true)
+    \add nn.Select(2, -1)
     \add nn.Normalize(2)
 
   wordDec = nn.TemporalConvolution(opts.dim, nWords+3, 1)
 
   decNext = with nn.Sequential!
     \add nn.ContextTable(3)
-    \add cudnn.GRU(2*opts.dim + wembDim, opts.dim, opts.nRNNs)
-    \add nn.Narrow(1, 1, -2) -- output after trailing </s> is forwarded is junk
+    \add cudnn.GRU(2*opts.dim + wembDim, opts.dim, opts.nRNNs, true)
+    \add nn.Narrow(2, 1, -2) -- output after trailing </s> is forwarded is junk
     \add wordDec
     \add nn.Transpose({1, 3})
     \add cudnn.SpatialLogSoftMax!
-    \add nn.Transpose({3, 1})
 
   decPrev = with decNext\clone!
     \applyToModules (mod) -> mod\reset!

@@ -38,7 +38,7 @@ require 'optim'
     gpuNextSents\resize(batchNextSents\size!)\copy(batchNextSents)
 
     input = {gpuSents, gpuPrevSents, gpuNextSents}
-    target = {gpuPrevSents\t!\sub(2, -1), gpuNextSents\t!\sub(2, -1)}
+    target = {gpuPrevSents[{{}, {2, -1}}], gpuNextSents[{{}, {2, -1}}]}
 
     model\forward(input)
     state.trainLoss += crit\forward(model.output, target)
