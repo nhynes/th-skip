@@ -29,31 +29,35 @@ Model.__init = (opts) =>
 
   lutDecNext = lutT\clone('weight', 'gradWeight')()
   lutDecPrev = lutT\clone('weight', 'gradWeight')()
-  lutEnc = lutT()
 
   encoder = with nn.Sequential!
-    \add cudnn.BGRU(w2v\size(2), opts.dim, opts.nRNNs)
+    \add lutT
+    \add cudnn.BGRU(wembDim, opts.dim, opts.nRNNs)
     \add nn.Select(1, -1)
+    \add nn.Normalize(2)
+
+  wordDec = nn.TemporalConvolution(opts.dim, nWords, 1)
 
   decNext = with nn.Sequential!
     \add nn.ContextTable(3)
     \add cudnn.GRU(2*opts.dim + wembDim, opts.dim, opts.nRNNs)
     \add nn.Narrow(1, 1, -2) -- output after trailing </s> is forwarded is junk
-    \add nn.TemporalConvolution(opts.dim, opts.vocabSize, 1)
+    \add wordDec
     \add nn.Transpose({1, 3})
     \add cudnn.SpatialLogSoftMax!
     \add nn.Transpose({3, 1})
 
   decPrev = with decNext\clone!
     \applyToModules (mod) -> mod\reset!
+    \get(4)\share(wordDec, 'weight', 'gradWeight', 'bias', 'gradBias')
 
-  stVecs = encoder(lutEnc)
+  stVecs = encoder()
   prevPreds = decPrev{lutDecPrev, stVecs}
   nextPreds = decNext{lutDecNext, stVecs}
 
-  @model = nn.gModule({lutEnc, lutDecPrev, lutDecNext}, {prevPreds, nextPreds})
+  @model = nn.gModule({stVecs, lutDecPrev, lutDecNext}, {prevPreds, nextPreds})
 
-  @modules = {@model, encoder, decPrev, decNext}
+  @modules = {@model, encoder, decPrev, decNext, lutT}
 
   collectgarbage!
 
