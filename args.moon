@@ -34,6 +34,7 @@ parse = (arg={}) ->
     -- Saving & loading
     \option '-savefreq', -1, 'number of iterations between snapshots (-1 is infinite)'
     \option '-snapfile', 'snaps/snap', 'snapshot file prefix'
+    \option '-saveafter', -1, 'how long before considering to save (-1 is immediately)'
     \option '-loadsnap', '', 'file from which to load model'
     \option '-rundesc', '', 'description of what is being tested'
 

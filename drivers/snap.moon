@@ -8,7 +8,8 @@ _ = require 'moses'
   state.bestLoss = state.bestLoss or math.huge
 
   ->
-    if state.valLoss <= state.bestLoss
+    startedSaving = opts.saveafter == -1 or state.t > opts.saveafter
+    if state.valLoss <= state.bestLoss and state.t >= opts.saveafter
       state.bestLoss = state.valLoss
 
       outfile = string.format OUTFILE_TMP, state.t, state.bestLoss
