@@ -16,7 +16,7 @@ parse = (arg={}) ->
 
     \option '-nworkers', 4, 'number of data loading threads'
     \option '-gpu', 0, 'index of the GPU to use'
-    \option '-batchSize', 256, 'mini-batch size'
+    \option '-batchSize', 100, 'mini-batch size'
 
     -- Model
     \option '-dim', 1200, 'RNN dimension'
