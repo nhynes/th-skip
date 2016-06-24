@@ -3,14 +3,12 @@ require 'cudnn'
 require 'hdf5'
 require 'dpnn'
 require 'xlua'
-require 'sys'
 _ = require 'moses'
 import thisfile from require 'paths'
 import dofile from require 'moonscript'
 
 PROJ_ROOT = thisfile '../'
 UNK, SOR, EOR, EOS = 1, 2, 3, 4
-VERIFY_IND = 1024
 
 torch.setdefaulttensortype 'torch.FloatTensor'
 
@@ -101,7 +99,7 @@ for sentlen in *_.reverse(data.lengths)
     batchSentsIdx\set batchSents\storage!, 1,
       torch.LongStorage{batchSize, toks\size(2)},
       strides
-    batchSentsIdx\index(toks, 1, selInds) -- copy
+    batchSentsIdx\index(toks, 1, selInds)
     batchSents\select(2, sentlen+1)\fill(EOS)
     -- batchSents[{i, {1, sentlen}}] = toks[{batchInds[i], {1, sentlen}}] for i=1,batchSize
 
