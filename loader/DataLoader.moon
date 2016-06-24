@@ -37,8 +37,6 @@ DataLoader.__init = (dataTrain, dataVal, opts) =>
   groupByLen(dataTrain)
   groupByLen(dataVal)
 
-maskUNK = (toks, vocabSize) -> toks\maskedFill(toks\gt(vocabSize), UNK)
-
 DataLoader.makebatch = (partition='train') =>
   data = partition == 'val' and @dataVal or @dataTrain
 
@@ -112,11 +110,6 @@ DataLoader.makebatch = (partition='train') =>
   batchPrevSents\select(2, 1)\fill(EOS)
   batchNextSents = batchNextSents\narrow(2, 1, maxNext+1)
   batchNextSents\select(2, 1)\fill(EOS)
-
-  vocabSize = @vocabSize + 3
-  maskUNK(batchSents, vocabSize)
-  maskUNK(batchPrevSents, vocabSize)
-  maskUNK(batchNextSents, vocabSize)
 
   -- print(selInds)
 

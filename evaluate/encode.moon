@@ -25,6 +25,23 @@ cmd = with torch.CmdLine!
 opts = cmd\parse arg
 
 ---------------------------------------------------------------------------------------
+-- Load encoder
+---------------------------------------------------------------------------------------
+
+dofile PROJ_ROOT..'/model/init.moon'
+snap = torch.load(opts.model)
+{:model, opts: modelOpts} = snap
+encoder = model\get(1)\get(2)\cuda!
+encoder\evaluate!
+
+vocabSize = modelOpts.vocabSize + 1
+assert vocabSize == encoder\get(1)\get(1).weight\size(1)
+encDim = modelOpts.dim*2 -- bidirectional
+
+model = nil
+collectgarbage!
+
+---------------------------------------------------------------------------------------
 -- Load Data
 ---------------------------------------------------------------------------------------
 
@@ -49,28 +66,13 @@ groupByLen = (data) ->
   data.indsByLen = indsByLen
 
 dsH5 = hdf5.open(opts.data)
+toks = dsH5\read('/toks_'..opts.partition)\all!
+toks\maskedFill(toks\gt(vocabSize), UNK)
 data =
-  toks: dsH5\read('/toks_'..opts.partition)\all!
+  toks: toks
   slens: dsH5\read('/slens_'..opts.partition)\all!
 dsH5\close!
 groupByLen(data)
-
----------------------------------------------------------------------------------------
--- Load encoder
----------------------------------------------------------------------------------------
-
-dofile PROJ_ROOT..'/model/init.moon'
-snap = torch.load(opts.model)
-{:model, opts: modelOpts} = snap
-encoder = model\get(1)\get(2)\cuda!
-encoder\evaluate!
-
-vocabSize = modelOpts.vocabSize + 1
-assert vocabSize == encoder\get(1)\get(1).weight\size(1)
-encDim = modelOpts.dim*2 -- bidirectional
-
-model = nil
-collectgarbage!
 
 ---------------------------------------------------------------------------------------
 -- Encode
@@ -101,7 +103,6 @@ for sentlen in *_.reverse(data.lengths)
       strides
     batchSentsIdx\index(toks, 1, selInds) -- copy
     batchSents\select(2, sentlen+1)\fill(EOS)
-    batchSents = batchSents\narrow(2, 1, sentlen+1)
     -- batchSents[{i, {1, sentlen}}] = toks[{batchInds[i], {1, sentlen}}] for i=1,batchSize
 
     gpuSents\resize(batchSents\size!)\copy(batchSents)

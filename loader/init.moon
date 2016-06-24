@@ -5,16 +5,20 @@ threads.serialization 'threads.sharedserialize'
 
 export dataLoader
 
+UNK, SOR, EOR, EOS = 1, 2, 3, 4
+
 -- import dofile from require 'moonscript'
 -- import thisfile from require 'paths'
 
 -- dofile(thisfile 'DataLoader.moon')
 
-loadPartition = (dsH5, partition) ->
+loadPartition = (dsH5, partition, opts) ->
+  toks = dsH5\read('/toks_'..partition)\all!
+  toks\maskedFill(toks\gt(opts.vocabSize), UNK)
   {
     -- ids: dsH5\read('/ids_'..partition)\all!
     -- rlens: dsH5\read('/rlens_'..partition)\all!
-    toks: dsH5\read('/toks_'..partition)\all!
+    toks: toks
     slens: dsH5\read('/slens_'..partition)\all!
     rbps: dsH5\read('/rbps_'..partition)\all!
   }
@@ -23,8 +27,8 @@ init = (opts) ->
   {:nworkers, :seed} = opts
 
   dsH5 = hdf5.open(opts.dataset, 'r')
-  dataTrain = loadPartition(dsH5, 'train')
-  dataVal = loadPartition(dsH5, 'val')
+  dataTrain = loadPartition(dsH5, 'train', opts)
+  dataVal = loadPartition(dsH5, 'val', opts)
   dsH5\close!
 
   loaderOpts = _.omit(opts, 'savedState')
