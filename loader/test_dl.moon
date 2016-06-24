@@ -3,7 +3,9 @@ require 'torch'
 import dofile from require 'moonscript'
 import thisfile from require 'paths'
 
-dofile 'DataLoader.moon'
+dec = arg[1] == '-dec'
+
+dofile(dec and 'DataLoaderDecoder.moon' or 'DataLoader.moon')
 
 toks = torch.ByteTensor{
   {6, 6, 6, 0, 0} -- actual max length is 7
