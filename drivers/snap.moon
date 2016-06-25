@@ -8,7 +8,7 @@ _ = require 'moses'
   state.bestLoss = state.bestLoss or math.huge
 
   ->
-    canSave = opts.saveafter == -1 or state.t > opts.saveafter
+    canSave = state.t >= opts.saveafter
     if canSave and state.valLoss <= state.bestLoss
       state.bestLoss = state.valLoss
 
