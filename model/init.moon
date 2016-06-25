@@ -8,23 +8,17 @@ import thisfile from require 'paths'
 loadW2V = dofile(thisfile 'w2v.moon')
 dofile(thisfile 'BGRU.moon')
 dofile(thisfile 'ContextTable.moon')
+dofile(thisfile 'LookupTableW2V.moon')
 
 Model, parent = torch.class('Model', 'nn.Container')
 
 Model.__init = (opts) =>
   parent.__init(self)
 
-  -- initialize with w2v embeddings
-  w2v = loadW2V(opts.w2v)
-  nWords = math.min(opts.vocabSize-3, w2v\size(1)) -- -1 for unk, <r>, and </r>
-  wembDim = w2v\size(2)
-  w2v = w2v\sub(1, nWords)
-
-  lut = nn.LookupTable(nWords+3, wembDim) -- unk, <r>, </r>
-  lut.weight\sub(4, -1)\copy(w2v)
-
+  lut = nn.LookupTableW2V(opts.vocabSize, 4, opts.w2v) -- UNK, <r>, </r>, <s>, </s>
   lutDecNext = lut\clone('weight', 'gradWeight')()
   lutDecPrev = lut\clone('weight', 'gradWeight')()
+  wembDim = lut.nOutput
 
   encoder = with nn.Sequential!
     \add lut
@@ -32,7 +26,7 @@ Model.__init = (opts) =>
     \add nn.Select(2, -1)
     \add nn.Normalize(2)
 
-  wordDec = nn.TemporalConvolution(opts.dim, nWords+3, 1)
+  wordDec = nn.TemporalConvolution(opts.dim, opts.vocabSize, 1)
 
   decNext = with nn.Sequential!
     \add nn.ContextTable(3)

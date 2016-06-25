@@ -3,7 +3,7 @@ _ = require 'moses'
 
 DataLoader = torch.class('DataLoader')
 
-UNK, SOR, EOR, EOS = 1, 2, 3, 4
+UNK, SOR, EOR, SOS, EOS = 1, 2, 3, 4, 5
 
 groupByLen = (data) ->
   slens = data.slens
@@ -43,13 +43,13 @@ DataLoader.makebatch = (partition='train') =>
   [==[
     1. pick a sentence length
     <until full minibatch>
-    2. grab a sentence
+    2. grab a sentence, add <s> and </s>
     3. grab prev and next sentences
       if it's on a recipe boundary (check rbp), prev sentence is <r> </s>
       if the next sentence is on a boundary, next sentence is </r> </s>
     4. add the trailing </s>
     <end>
-    4. add leading </s>
+    4. add leading <s>
   ]==]
 
   sentlen = data.lengths[torch.multinomial(data.lenFreqs, 1)[1]]
@@ -58,10 +58,10 @@ DataLoader.makebatch = (partition='train') =>
 
   selIndInds = torch.randperm(#sentlenInds)\sub(1, batchSize)
 
-  maxSentLen = data.lengths[#data.lengths] + 2 -- </s> ... </s>
+  maxSentLen = data.lengths[#data.lengths] + 2 -- <s> ... </s>
 
   -- batchIds = torch.CharTensor(batchSize, 11) -- bin search rbps for selInd
-  batchSents = torch.LongTensor(batchSize, sentlen+1)\zero!
+  batchSents = torch.LongTensor(batchSize, sentlen+2)\zero! -- +2 for <s> and </s>
   batchPrevSents = torch.LongTensor(batchSize, maxSentLen)\zero!
   batchNextSents = torch.LongTensor(batchSize, maxSentLen)\zero!
 
@@ -74,13 +74,10 @@ DataLoader.makebatch = (partition='train') =>
   maxPrev = 0
   maxNext = 0
 
-  selInds = torch.LongTensor(batchSize)
-
   for i=1,batchSize
     selInd = sentlenInds[selIndInds[i]]
-    selInds[i] = selInd
 
-    batchSents[i]\sub(1, -2)\copy toks[selInd]\sub(1, sentlen)
+    batchSents[i]\sub(2, -2)\copy(toks[selInd]\sub(1, sentlen))
 
     prevSent = batchPrevSents\select(1, i)\sub(2, -1)
     nextSent = batchNextSents\select(1, i)\sub(2, -1)
@@ -105,13 +102,12 @@ DataLoader.makebatch = (partition='train') =>
       nextSent[slen+1] = EOS
       maxNext = math.max(maxNext, slen+1)
 
-  batchSents\select(2, sentlen+1)\fill(EOS)
+  batchSents\select(2, 1)\fill(SOS)
+  batchSents\select(2, sentlen+2)\fill(EOS)
   batchPrevSents = batchPrevSents\narrow(2, 1, maxPrev+1)
-  batchPrevSents\select(2, 1)\fill(EOS)
+  batchPrevSents\select(2, 1)\fill(SOS)
   batchNextSents = batchNextSents\narrow(2, 1, maxNext+1)
-  batchNextSents\select(2, 1)\fill(EOS)
-
-  -- print(selInds)
+  batchNextSents\select(2, 1)\fill(SOS)
 
   batchSents, batchPrevSents, batchNextSents
 

@@ -26,8 +26,8 @@ args = parser.parse_args()
 
 # load vocab
 with open(utils.dspath(args.vocab, ds=args.dataset)) as f_vocab:
-    vocab = {w.rstrip(): i+4 for i, w in enumerate(f_vocab)}
-    # +1 for lua, +1 for UNK, +1 for <r>, +1 for </r>
+    vocab = {w.rstrip(): i+5 for i, w in enumerate(f_vocab)}
+    # +1 for lua, UNK, <r>, </r>, and <s>
     vocab['UNK'] = 1
 
 print('Loading dataset.')

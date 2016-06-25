@@ -6,17 +6,17 @@ import thisfile from require 'paths'
 dofile 'DataLoader.moon'
 
 toks = torch.ByteTensor{
-  {5, 5, 5, 0, 0} -- actual max length is 7
+  {6, 6, 6, 0, 0} -- actual max length is 8
 
-  {5, 5, 5, 5, 5}
-  {7, 7, 7, 7, 7}
+  {6, 6, 6, 6, 6}
+  {8, 8, 8, 8, 8}
 
-  {5, 5, 7, 6, 5}
-  {6, 0, 0, 0, 0}
+  {6, 6, 8, 7, 6}
+  {7, 0, 0, 0, 0}
 
-  {5, 6, 0, 0, 0}
+  {6, 7, 0, 0, 0}
 
-  {5, 7, 6, 0, 0}
+  {6, 8, 7, 0, 0}
 }
 
 rlens = torch.LongTensor{1, 2, 2, 1, 1}
