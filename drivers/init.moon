@@ -11,17 +11,37 @@ import thisfile from require 'paths'
 dofile(thisfile 'LMCriterion.moon')
 
 init = (model, workers, opts) ->
-  crit = with nn.ParallelCriterion!
-    \add nn.LMCriterion!
-    \add nn.LMCriterion!
-    \cuda!
-
   state = _.defaults opts.savedState or {},
-      gpuSents: torch.CudaTensor(opts.batchSize, opts.sentlen)
-      gpuNextSents: torch.CudaTensor(opts.batchSize, opts.sentlen)
-      gpuPrevSents: torch.CudaTensor(opts.batchSize, opts.sentlen)
-      crit: crit
       t: 0
+      crit: with nn.ParallelCriterion!
+        \add nn.LMCriterion!
+        \add nn.LMCriterion!
+        \cuda!
+
+  gpuSents = torch.CudaTensor(opts.batchSize, opts.sentlen)
+  state.gpuSents = gpuSents
+  if opts.decoding == 1
+    state.prepBatch = (batchSents) ->
+      gpuSents\resize(batchSents\size!)\copy(batchSents)
+      trimEOS = gpuSents[{{}, {1, -2}}]
+      {gpuSents[{{}, {2, -1}}], trimEOS}, trimEOS
+  else
+    gpuNextSents = torch.CudaTensor(opts.batchSize, opts.sentlen)
+    gpuPrevSents = torch.CudaTensor(opts.batchSize, opts.sentlen)
+
+    state.prepBatch = (batchSents, batchPrevSents, batchNextSents) ->
+      gpuSents\resize(batchSents\size!)\copy(batchSents)
+      gpuPrevSents\resize(batchPrevSents\size!)\copy(batchPrevSents)
+      gpuNextSents\resize(batchNextSents\size!)\copy(batchNextSents)
+
+      input = {gpuSents, gpuPrevSents[{{}, {1, -2}}], gpuNextSents[{{}, {1, -2}}]}
+      target = {gpuPrevSents[{{}, {2, -1}}], gpuNextSents[{{}, {2, -1}}]}
+
+      state.gpuPrevSents = gpuPrevSents
+      state.gpuNextSents = gpuNextSents
+
+      input, target
+
 
   drivers = {}
   lazyDrivers = {}

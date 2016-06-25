@@ -1,7 +1,7 @@
 VALBATCHES = 100
 
 (model, workers, opts, state) ->
-  {:gpuSents, :gpuPrevSents, :gpuNextSents, :crit} = state
+  {:prepBatch, :crit} = state
 
   ->
     model\evaluate!
@@ -14,14 +14,8 @@ VALBATCHES = 100
 
     for i=1,VALBATCHES
       workers\addjob (-> dataLoader\makebatch 'val'),
-        (batchSents, batchPrevSents, batchNextSents) ->
-          gpuSents\resize(batchSents\size!)\copy(batchSents)
-          gpuPrevSents\resize(batchPrevSents\size!)\copy(batchPrevSents)
-          gpuNextSents\resize(batchNextSents\size!)\copy(batchNextSents)
-
-          input = {gpuSents, gpuPrevSents[{{}, {1, -2}}], gpuNextSents[{{}, {1, -2}}]}
-          target = {gpuPrevSents[{{}, {2, -1}}], gpuNextSents[{{}, {2, -1}}]}
-
+        (...) ->
+          input, target = prepBatch(...)
           model\forward(input)
           valLoss += crit\forward(model.output, target)
 

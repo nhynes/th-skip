@@ -8,6 +8,8 @@ parse = (arg={}) ->
     \text!
     \text 'Options'
 
+    \option '-decoding', '', 'Train decoder using this model'
+
     \option '-seed', 4242, 'Manual random seed'
 
     -- Data

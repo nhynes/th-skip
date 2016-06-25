@@ -4,11 +4,10 @@ require 'torch'
 require 'cutorch'
 require 'drivers.CallbackQueue'
 
-require 'model.init'
-
-args = dofile 'args.moon'
-loader = dofile 'loader/init.moon'
-drivers = dofile 'drivers/init.moon'
+args = require 'args'
+model = require 'model.init'
+loader = require 'loader.init'
+drivers = require 'drivers.init'
 
 opts = args.parse arg
 
@@ -18,23 +17,24 @@ math.randomseed(opts.seed)
 
 cutorch.setDevice(opts.gpu+1)
 
-model = nil
+Model = model.init(opts)
+theModel = nil
 if paths.filep opts.loadsnap
   print 'Loading model from '..opts.loadsnap
   require 'dpnn'
   snap = torch.load(opts.loadsnap)
-  model = snap.model\get(1)
+  theModel = snap.model\get(1)
   newOpts = _.pick(opts, 'loadsnap', 'niters', 'dispfreq', 'valfreq', 'savefreq')
   opts = _.extend(snap.opts, newOpts)
   opts.savedState = snap.state
   print 'Resuming training from iteration '..opts.savedState.t
 else
-  model = Model(opts)
-model\cuda!
+  theModel = Model(opts)
+theModel\cuda!
 
 workers = loader.init(opts)
 
-train, val, snap = drivers.init(model, workers, opts)
+train, val, snap = drivers.init(theModel, workers, opts)
 
 done = ->
   workers\addjob (-> dataLoader\terminate!), ->

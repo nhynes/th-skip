@@ -3,7 +3,7 @@ require 'cutorch'
 require 'optim'
 
 (model, workers, opts, state) ->
-  {:gpuSents, :gpuPrevSents, :gpuNextSents, :crit, :optimState} = state
+  {:prepBatch, :crit, :optimState} = state
 
   state.trainLoss = 0
 
@@ -30,15 +30,10 @@ require 'optim'
 
   f = -> crit.output, gradParams
 
-  doTrain = (batchSents, batchPrevSents, batchNextSents) ->
+  doTrain = (...) ->
     state.t += 1
 
-    gpuSents\resize(batchSents\size!)\copy(batchSents)
-    gpuPrevSents\resize(batchPrevSents\size!)\copy(batchPrevSents)
-    gpuNextSents\resize(batchNextSents\size!)\copy(batchNextSents)
-
-    input = {gpuSents, gpuPrevSents[{{}, {1, -2}}], gpuNextSents[{{}, {1, -2}}]}
-    target = {gpuPrevSents[{{}, {2, -1}}], gpuNextSents[{{}, {2, -1}}]}
+    input, target = prepBatch(...)
 
     model\forward(input)
     state.trainLoss += crit\forward(model.output, target)
