@@ -37,7 +37,7 @@ require 'optim'
     gpuPrevSents\resize(batchPrevSents\size!)\copy(batchPrevSents)
     gpuNextSents\resize(batchNextSents\size!)\copy(batchNextSents)
 
-    input = {gpuSents, gpuPrevSents, gpuNextSents}
+    input = {gpuSents, gpuPrevSents[{{}, {1, -2}}], gpuNextSents[{{}, {1, -2}}]}
     target = {gpuPrevSents[{{}, {2, -1}}], gpuNextSents[{{}, {2, -1}}]}
 
     model\forward(input)

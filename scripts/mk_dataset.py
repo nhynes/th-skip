@@ -34,6 +34,7 @@ print('Loading dataset.')
 dataset = Layer.load(Layer.L1, ds=args.dataset)
 
 print('Assembling tokens.')
+max_seqlen = args.max_seqlen - 1 # <s> or </s>
 recipe_ids = { 'train': [], 'val': [], 'test': [] }
 toks_lists = { 'train': [], 'val': [], 'test': [] }
 recipe_lens = { 'train': [], 'val': [], 'test': [] }
@@ -61,13 +62,13 @@ with open(utils.dspath(args.toks, ds=args.dataset)) as f_toks:
 
         part_toks = toks_lists[partition]
         for tok_sent in tok_sents:
-            toks = tok_sent.split(' ')[:args.max_seqlen-2] # </s> toks... </s>
+            toks = tok_sent.split(' ')[:max_seqlen] # -1 for <s> or </s>
             sent_lens[partition].append(len(toks))
             part_toks.append([vocab.get(t, vocab['UNK']) for t in toks])
 
 recipe_toks = {}
 for part, toks_lists in toks_lists.iteritems():
-    toks_vec = np.zeros((len(toks_lists), args.max_seqlen-2), dtype='uint16')
+    toks_vec = np.zeros((len(toks_lists), max_seqlen), dtype='uint16')
     for i, toks_list in enumerate(toks_lists):
         toks_vec[i, :len(toks_list)] = toks_list
     recipe_toks[part] = toks_vec

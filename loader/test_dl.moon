@@ -6,7 +6,7 @@ import thisfile from require 'paths'
 dofile 'DataLoader.moon'
 
 toks = torch.ByteTensor{
-  {6, 6, 6, 0, 0} -- actual max length is 8
+  {6, 6, 6, 0, 0} -- actual max length is 7
 
   {6, 6, 6, 6, 6}
   {8, 8, 8, 8, 8}

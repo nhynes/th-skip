@@ -58,10 +58,10 @@ DataLoader.makebatch = (partition='train') =>
 
   selIndInds = torch.randperm(#sentlenInds)\sub(1, batchSize)
 
-  maxSentLen = data.lengths[#data.lengths] + 2 -- <s> ... </s>
+  maxSentLen = data.lengths[#data.lengths] + 2 -- +2 for <s> and </s>
 
   -- batchIds = torch.CharTensor(batchSize, 11) -- bin search rbps for selInd
-  batchSents = torch.LongTensor(batchSize, sentlen+2)\zero! -- +2 for <s> and </s>
+  batchSents = torch.LongTensor(batchSize, sentlen+1)\zero! -- +1 for </s>
   batchPrevSents = torch.LongTensor(batchSize, maxSentLen)\zero!
   batchNextSents = torch.LongTensor(batchSize, maxSentLen)\zero!
 
@@ -77,7 +77,7 @@ DataLoader.makebatch = (partition='train') =>
   for i=1,batchSize
     selInd = sentlenInds[selIndInds[i]]
 
-    batchSents[i]\sub(2, -2)\copy(toks[selInd]\sub(1, sentlen))
+    batchSents[i]\sub(1, -2)\copy(toks[selInd]\sub(1, sentlen))
 
     prevSent = batchPrevSents\select(1, i)\sub(2, -1)
     nextSent = batchNextSents\select(1, i)\sub(2, -1)
@@ -102,12 +102,13 @@ DataLoader.makebatch = (partition='train') =>
       nextSent[slen+1] = EOS
       maxNext = math.max(maxNext, slen+1)
 
-  batchSents\select(2, 1)\fill(SOS)
-  batchSents\select(2, sentlen+2)\fill(EOS)
+  batchSents\select(2, sentlen+1)\fill(EOS)
   batchPrevSents = batchPrevSents\narrow(2, 1, maxPrev+1)
   batchPrevSents\select(2, 1)\fill(SOS)
   batchNextSents = batchNextSents\narrow(2, 1, maxNext+1)
   batchNextSents\select(2, 1)\fill(SOS)
+
+  collectgarbage!
 
   batchSents, batchPrevSents, batchNextSents
 

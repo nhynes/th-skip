@@ -31,7 +31,6 @@ Model.__init = (opts) =>
   decNext = with nn.Sequential!
     \add nn.ContextTable(3)
     \add cudnn.GRU(2*opts.dim + wembDim, opts.dim, opts.nRNNs, true)
-    \add nn.Narrow(2, 1, -2) -- output after trailing </s> is forwarded is junk
     \add wordDec
     \add nn.Transpose({1, 3})
     \add cudnn.SpatialLogSoftMax!
