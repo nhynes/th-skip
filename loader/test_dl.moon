@@ -1,7 +1,10 @@
 require 'torch'
+require 'os'
 
 import dofile from require 'moonscript'
 import thisfile from require 'paths'
+
+math.randomseed(os.time!)
 
 dec = arg[1] == '-dec'
 

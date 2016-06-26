@@ -11,16 +11,21 @@ import thisfile from require 'paths'
 dofile(thisfile 'LMCriterion.moon')
 
 init = (model, workers, opts) ->
+  crit = nil
+  if opts.decoding ~= ''
+    crit = nn.LMCriterion!
+  else
+    crit = with nn.ParallelCriterion!
+      \add nn.LMCriterion!
+      \add nn.LMCriterion!
+
   state = _.defaults opts.savedState or {},
       t: 0
-      crit: with nn.ParallelCriterion!
-        \add nn.LMCriterion!
-        \add nn.LMCriterion!
-        \cuda!
+      crit: crit\cuda!
 
   gpuSents = torch.CudaTensor(opts.batchSize, opts.sentlen)
   state.gpuSents = gpuSents
-  if opts.decoding == 1
+  if opts.decoding ~= ''
     state.prepBatch = (batchSents) ->
       gpuSents\resize(batchSents\size!)\copy(batchSents)
       trimEOS = gpuSents[{{}, {1, -2}}]

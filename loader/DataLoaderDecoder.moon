@@ -3,7 +3,7 @@ _ = require 'moses'
 
 DataLoader = torch.class('DataLoader')
 
-UNK, SOR, EOR, EOS = 1, 2, 3, 4
+UNK, SOR, EOR, SOS, EOS = 1, 2, 3, 4, 5
 
 groupByLen = (data) ->
   slens = data.slens
@@ -53,8 +53,10 @@ DataLoader.makebatch = (partition='train') =>
   sentlen = data.lengths[torch.multinomial(data.lenFreqs, 1)[1]]
 
   if sentlen == 1 and math.random() < data.soreorFreq -- train on <r> </r>
-    batchSents = torch.LongTensor(@batchSize, 3)\fill(EOS)
-    batchSents\select(2, 2)\random(2, 3)
+    batchSents = with torch.LongTensor(@batchSize, 3)
+      \select(2, 1)\fill(SOS)
+      \select(2, 2)\random(2, 3)
+      \select(2, 3)\fill(EOS)
     return batchSents
 
 
@@ -71,7 +73,7 @@ DataLoader.makebatch = (partition='train') =>
       torch.LongStorage {batchSize, toks\size(2)},
       strides
   batchSentsIdx\index(toks, 1, selInds)
-  batchSents\select(2, 1)\fill(EOS)
+  batchSents\select(2, 1)\fill(SOS)
   batchSents\select(2, sentlen+2)\fill(EOS)
 
   batchSents
