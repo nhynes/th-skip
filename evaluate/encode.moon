@@ -8,7 +8,7 @@ import thisfile from require 'paths'
 import dofile from require 'moonscript'
 
 PROJ_ROOT = thisfile '../'
-UNK, SOR, EOR, EOS = 1, 2, 3, 4
+UNK, SOR, EOR, SOS, EOS = 1, 2, 3, 4, 5
 
 torch.setdefaulttensortype 'torch.FloatTensor'
 
@@ -18,7 +18,7 @@ cmd = with torch.CmdLine!
   \option '-data', PROJ_ROOT..'/data/dataset.h5', 'path to dataset'
   \option '-partition', 'test', '(train|val|test)'
   \option '-model', PROJ_ROOT..'/snaps/model.t7', 'path to model'
-  \option '-batchSize', 4096, 'max number of sentences to encode at once'
+  \option '-batchSize', 1024, 'max number of sentences to encode at once'
   \option '-out', 'encoded_sents', 'prefix to save encoded sentences'
 opts = cmd\parse arg
 
@@ -26,14 +26,14 @@ opts = cmd\parse arg
 -- Load encoder
 ---------------------------------------------------------------------------------------
 
-dofile PROJ_ROOT..'/model/init.moon'
+model = dofile PROJ_ROOT..'/model/init.moon'
+model.init{}
 snap = torch.load(opts.model)
 {:model, opts: modelOpts} = snap
-encoder = model\get(1)\get(2)\cuda!
+encoder = model\get(1).encoder\cuda!
 encoder\evaluate!
 
-vocabSize = modelOpts.vocabSize + 1
-assert vocabSize == encoder\get(1)\get(1).weight\size(1)
+vocabSize = modelOpts.vocabSize
 encDim = modelOpts.dim*2 -- bidirectional
 
 model = nil
