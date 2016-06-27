@@ -1,11 +1,15 @@
 require 'torch'
 require 'cutorch'
 require 'optim'
+require 'sys'
 
 (model, workers, opts, state) ->
   {:prepBatch, :crit, :optimState} = state
 
   state.trainLoss = 0
+  state.timer = 0
+
+  dispfreq = opts.dispfreq
 
   if optimState == nil
     optimState =
@@ -34,6 +38,7 @@ require 'optim'
 
     input, target = prepBatch(...)
 
+    sys.tic!
     model\forward(input)
     state.trainLoss += crit\forward(model.output, target)
 
@@ -41,10 +46,12 @@ require 'optim'
     crit\backward(model.output, target)
     model\backward(input, crit.gradInput)
     optimizer(f, params, optimState)
+    state.timer += sys.toc!
 
     if state.t % opts.dispfreq == 0
-      print string.format('Train loss: %g', state.trainLoss/opts.dispfreq)
+      print string.format('Train loss: %g\t(%.2f)', state.trainLoss/dispfreq, state.timer/dispfreq)
       state.trainLoss = 0
+      state.timer = 0
 
     assert params\storage! == model\parameters![1]\storage!
 
