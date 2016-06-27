@@ -42,10 +42,10 @@ init = (model, workers, opts) ->
       input = {gpuSents, gpuPrevSents[{{}, {1, -2}}], gpuNextSents[{{}, {1, -2}}]}
       target = {gpuPrevSents[{{}, {2, -1}}], gpuNextSents[{{}, {2, -1}}]}
 
-      state.gpuPrevSents = gpuPrevSents
-      state.gpuNextSents = gpuNextSents
-
       input, target
+
+    state.gpuPrevSents = gpuPrevSents
+    state.gpuNextSents = gpuNextSents
 
 
   drivers = {}

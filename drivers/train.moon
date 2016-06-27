@@ -10,7 +10,6 @@ require 'optim'
   if optimState == nil
     optimState =
       learningRate: opts.lr
-      weightDecay: 5e-4
 
     if opts.optim == 'sgd'
       with optimState
