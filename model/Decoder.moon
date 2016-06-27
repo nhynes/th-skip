@@ -15,6 +15,8 @@ Decoder, parent = torch.class('Decoder', 'nn.Container')
 Decoder.__init = (opts) =>
   parent.__init(self)
 
+  @dpnn_getParameters_found = true -- prevent dpnn's getParameters from searching table
+
   @encoder, encLut, stDim = loadEncoder(opts.decoding)
 
   @lut = encLut\clone!
