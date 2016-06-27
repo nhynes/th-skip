@@ -22,7 +22,7 @@ Encoder.__init = (opts) =>
   wordDec = nn.TemporalConvolution(opts.dim, opts.vocabSize, 1)
 
   @decNext = with nn.Sequential!
-    \add nn.ContextTable(3)
+    \add nn.ContextTable!
     \add cudnn.GRU(2*opts.dim + wembDim, opts.dim, opts.nRNNs, true)
     \add wordDec
     \add nn.Transpose({1, 3})

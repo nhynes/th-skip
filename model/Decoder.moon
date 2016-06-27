@@ -20,7 +20,7 @@ Decoder.__init = (opts) =>
   @lut = encLut\clone!
 
   @decoder = with nn.Sequential!
-    \add nn.ContextTable(3)
+    \add nn.ContextTable()
     \add cudnn.GRU(stDim + @lut.nOutput, opts.dim, opts.nRNNs, true)
     \add nn.TemporalConvolution(opts.dim, opts.vocabSize, 1)
     \add nn.Transpose({1, 3})

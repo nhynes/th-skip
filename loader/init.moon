@@ -38,11 +38,10 @@ init = (opts) ->
       ->
         require 'moonscript'
         require 'torch'
-        require 'cutorch'
         require 'loader.DataLoader'..(opts.decoding ~= '' and 'Decoder' or ''),
       (tid) ->
-        math.randomseed seed+tid
-        torch.manualSeed seed+tid
+        math.randomseed(seed+tid)
+        torch.manualSeed(seed+tid)
         dataLoader = DataLoader(dataTrain, dataVal, loaderOpts)
   else -- single threaded data loading. useful for debugging
     require 'loader.DataLoader'..(opts.decoding ~= '' and 'Decoder' or '')

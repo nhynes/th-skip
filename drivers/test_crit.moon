@@ -24,5 +24,6 @@ wordProbs = torch.CudaTensor{ -- maxseqlen, batchsize, wordprobs (nll probs)
   {{0.0, 0.0}, {0.0, 0.0}, {1.0, 0.0}},
   {{0.0, 0.0}, {0.0, 0.0}, {0.0, 0.0}},
 }
+wordProbs = wordProbs\transpose(1, 3)
 
 print crit\forward(wordProbs, targets)
