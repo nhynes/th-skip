@@ -19,22 +19,13 @@ groupByLen = (data) ->
   lengths = _.keys indsByLen
   table.sort lengths
 
-  if lengths[1] ~= 1
-    indsByLen[1] = {}
-    table.insert(lengths, 0, 1) if lengths[1] ~= 1
-
   lenFreqs = torch.zeros(#lengths)
   lenFreqs[i] = #indsByLen[lengths[i]] for i=1,#lengths -- freq of each index -> len
-
-  maxFreq = lenFreqs\max!
-  soreorFreq = 1 - lenFreqs[1]/maxFreq
-  lenFreqs[1] = maxFreq  -- 1 - soreorFreq/lenFreqs of the time, present <[se]or>
 
   with data
     .lengths = lengths
     .indsByLen = {len,torch.LongTensor(inds) for len,inds in pairs indsByLen}
     .lenFreqs = lenFreqs
-    .soreorFreq = soreorFreq
 
 DataLoader.__init = (dataTrain, dataVal, opts) =>
   @batchSize = opts.batchSize
@@ -51,14 +42,6 @@ DataLoader.makebatch = (partition='train') =>
   toks = data.toks
 
   sentlen = data.lengths[torch.multinomial(data.lenFreqs, 1)[1]]
-
-  if sentlen == 1 and math.random() < data.soreorFreq -- train on <r> </r>
-    batchSents = with torch.LongTensor(@batchSize, 3)
-      \select(2, 1)\fill(SOS)
-      \select(2, 2)\random(2, 3)
-      \select(2, 3)\fill(EOS)
-    return batchSents
-
 
   sentlenInds = data.indsByLen[sentlen]
   batchSize = math.min(sentlenInds\size(1), @batchSize)
