@@ -28,8 +28,7 @@ init = (model, workers, opts) ->
   if opts.decoding ~= ''
     state.prepBatch = (batchSents) ->
       gpuSents\resize(batchSents\size!)\copy(batchSents)
-      trimEOS = gpuSents[{{}, {1, -2}}]
-      {gpuSents[{{}, {2, -1}}], trimEOS}, trimEOS
+      {gpuSents[{{}, {2, -1}}], gpuSents[{{}, {1, -2}}]}, gpuSents[{{}, {2, -1}}]
   else
     gpuNextSents = torch.CudaTensor(opts.batchSize, opts.sentlen)
     gpuPrevSents = torch.CudaTensor(opts.batchSize, opts.sentlen)
