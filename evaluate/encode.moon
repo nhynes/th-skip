@@ -34,7 +34,7 @@ encoder = model\get(1).encoder\cuda!
 encoder\evaluate!
 
 vocabSize = modelOpts.vocabSize
-encDim = modelOpts.dim*2 -- bidirectional
+encDim = modelOpts.dim * encoder\get(2).numDirections
 
 model = nil
 collectgarbage!

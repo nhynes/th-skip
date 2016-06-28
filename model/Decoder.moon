@@ -5,10 +5,8 @@ require 'nngraph'
 
 loadEncoder = (snapPath) ->
   {:opts, :model} = torch.load(snapPath)
-  model = model\get(1)
-  enc = model\get(2)
-  lut = enc\get(1)
-  enc, lut, opts.dim*2
+  {:encoder, :lut} = model\get(1)
+  encoder, lut, opts.dim*encoder\get(2).numDirections
 
 Decoder, parent = torch.class('Decoder', 'nn.Container')
 
