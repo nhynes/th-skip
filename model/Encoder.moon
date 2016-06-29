@@ -1,42 +1,20 @@
-require 'torch'
-require 'nn'
-require 'cunn'
-require 'nngraph'
-
 Encoder, parent = torch.class('Encoder', 'nn.Container')
 
 Encoder.__init = (opts) =>
+  -- opts = {:vocabSize, :w2v, :dim, :nRNNs}
   parent.__init(self)
 
-  @lut = nn.LookupTableW2V(opts.vocabSize, 4, opts.w2v) -- UNK, <r>, </r>, <s>, </s>
-  lutDecNext = @lut\clone('weight', 'gradWeight')()
-  lutDecPrev = @lut\clone('weight', 'gradWeight')()
-  wembDim = @lut.nOutput
+  @lut = nn.LookupTableW2V(opts.w2v, opts.vocabSize, 2) -- UNK and </r> are learned
 
-  @encoder = with nn.Sequential!
+  @rnn = cudnn.BGRU(@lut.nOutput, opts.dim, opts.nRNNs)
+
+  @embDim = @rnn.numDirections * opts.dim
+
+  @model = with nn.Sequential!
     \add @lut
-    \add cudnn.BGRU(wembDim, opts.dim, opts.nRNNs, true)
-    \add nn.Select(2, -1)
+    \add @rnn
+    \add nn.Select(1, -1)
     \add nn.Normalize(2)
-
-  wordDec = nn.TemporalConvolution(opts.dim, opts.vocabSize, 1)
-
-  @decNext = with nn.Sequential!
-    \add nn.ContextTable!
-    \add cudnn.GRU(2*opts.dim + wembDim, opts.dim, opts.nRNNs, true)
-    \add wordDec
-    \add nn.Transpose({1, 3})
-    \add cudnn.SpatialLogSoftMax!
-
-  @decPrev = with @decNext\clone!
-    \applyToModules (mod) -> mod\reset!
-    \get(3)\share(wordDec, 'weight', 'gradWeight', 'bias', 'gradBias')
-
-  stVecs = self.encoder!
-  prevPreds = self.decPrev{lutDecPrev, stVecs}
-  nextPreds = self.decNext{lutDecNext, stVecs}
-
-  @model = nn.gModule({stVecs, lutDecPrev, lutDecNext}, {prevPreds, nextPreds})
 
   @modules = {@model}
 
@@ -44,8 +22,8 @@ Encoder.__init = (opts) =>
 
 Encoder.updateOutput = (input) =>
   [==[
-  input: {sent, prevSent, nextSent} (N x sentlen, elems in [1, vocabSize])
-  output: {predPrevSent, predNextSent} (sentlen x N x vocabSize)
+  input: toks (N x sentlen, elems in [1, vocabSize])
+  output: sentVecs (N x embDim)
   ]==]
   @output = @model\forward(input)
   @output

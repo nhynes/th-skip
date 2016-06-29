@@ -3,7 +3,7 @@ _ = require 'moses'
 
 DataLoader = torch.class('DataLoader')
 
-UNK, SOR, EOR, SOS, EOS = 1, 2, 3, 4, 5
+UNK, EOR, EOS = 1, 2, 3
 
 groupByLen = (data) ->
   slens = data.slens
@@ -56,7 +56,7 @@ DataLoader.makebatch = (partition='train') =>
       torch.LongStorage {batchSize, toks\size(2)},
       strides
   batchSentsIdx\index(toks, 1, selInds)
-  batchSents\select(2, 1)\fill(SOS)
+  batchSents\select(2, 1)\fill(EOS)
   batchSents\select(2, sentlen+2)\fill(EOS)
 
   batchSents

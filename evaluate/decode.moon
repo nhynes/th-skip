@@ -10,7 +10,7 @@ import thisfile from require 'paths'
 import dofile from require 'moonscript'
 
 PROJ_ROOT = thisfile '../'
-UNK, SOR, EOR, SOS, EOS = 1, 2, 3, 4, 5
+UNK, EOR, EOS = 1, 2, 3
 
 torch.setdefaulttensortype 'torch.FloatTensor'
 
@@ -64,7 +64,7 @@ model = nil
 fVocab = io.open(opts.vocab)
 vocab = fVocab\read '*all'
 fVocab\close!
-i2w = {'UNK', '<r>', '</r>', '<s>'}
+i2w = {'UNK', '</r>'}
 i2w[#i2w+1] = word for word in string.gmatch(vocab, '[^\t\n]+')
 
 -- load encoded sentences
@@ -114,7 +114,7 @@ for i=1,encs\size(1),batchSize
   batchEncs = batchEncs\view(batchSize, 1, stDim)\expand(batchSize, opts.beam, stDim)
   gpuEncs\copy(batchEncs)
 
-  nextToks\fill(SOS)
+  nextToks\fill(EOS)
   for t=1,maxSentlen
     preds = decoder\forward({nextToks, gpuEncs})\select(2, 1)\t!
     -- torch.multinomial(nextToks, preds, 1)
@@ -127,6 +127,6 @@ for i=1,encs\size(1),batchSize
 
   sents\copy(gpuSents)
   for n=1,sents\size(1)
-    print(convertI2W(sents\select(1, n)))
+    print(convertI2W(sents[n])
     if n % opts.beam == 0
       print('')

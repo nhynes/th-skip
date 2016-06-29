@@ -3,7 +3,7 @@ _ = require 'moses'
 
 DataLoader = torch.class('DataLoader')
 
-UNK, SOR, EOR, SOS, EOS = 1, 2, 3, 4, 5
+UNK, EOR, EOS = 1, 2, 3
 
 groupByLen = (data) ->
   slens = data.slens
@@ -45,9 +45,9 @@ DataLoader.makebatch = (partition='train') =>
     <until full minibatch>
     2. grab a sentence, add </s>
     3. grab prev and next sentences
-      if it's on a recipe boundary (check rbp), prev sentence is <r>
-      if the next sentence is on a boundary, next sentence is </r>
-    4. add <s> and </s>
+      if sentence is on a recipe boundary (check rbp), prev sentence is </r>
+      if next sentence is on a boundary, next sentence is </r>
+    4. add leading and trailing </s>
   ]==]
 
   sentlen = data.lengths[torch.multinomial(data.lenFreqs, 1)[1]]
@@ -56,7 +56,7 @@ DataLoader.makebatch = (partition='train') =>
 
   selIndInds = torch.randperm(#sentlenInds)\sub(1, batchSize)
 
-  maxSentLen = data.lengths[#data.lengths] + 2 -- +2 for <s> and </s>
+  maxSentLen = data.lengths[#data.lengths] + 2 -- +2 for </s> ... </s>
 
   -- batchIds = torch.CharTensor(batchSize, 11) -- bin search rbps for selInd
   batchSents = torch.LongTensor(batchSize, sentlen+1)\zero! -- +1 for </s>
@@ -78,11 +78,11 @@ DataLoader.makebatch = (partition='train') =>
     batchSents[i]\sub(1, -2)\copy(toks[selInd]\sub(1, sentlen))
     batchSents\select(2, sentlen+1)\fill(EOS)
 
-    prevSent = batchPrevSents\select(1, i)\sub(2, -1)
-    nextSent = batchNextSents\select(1, i)\sub(2, -1)
+    prevSent = batchPrevSents[i]\sub(2, -1)
+    nextSent = batchNextSents[i]\sub(2, -1)
 
     if isBoundary[selInd] or selInd == 1
-      prevSent[1] = SOR
+      prevSent[1] = EOR
       prevSent[2] = EOS
       maxPrev = math.max(maxPrev, 1)
     else
@@ -102,9 +102,9 @@ DataLoader.makebatch = (partition='train') =>
       maxNext = math.max(maxNext, slen)
 
   batchPrevSents = batchPrevSents\narrow(2, 1, maxPrev+2)
-  batchPrevSents\select(2, 1)\fill(SOS)
+  batchPrevSents\select(2, 1)\fill(EOS)
   batchNextSents = batchNextSents\narrow(2, 1, maxNext+2)
-  batchNextSents\select(2, 1)\fill(SOS)
+  batchNextSents\select(2, 1)\fill(EOS)
 
   collectgarbage!
 

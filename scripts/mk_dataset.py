@@ -26,15 +26,15 @@ args = parser.parse_args()
 
 # load vocab
 with open(utils.dspath(args.vocab, ds=args.dataset)) as f_vocab:
-    vocab = {w.rstrip(): i+5 for i, w in enumerate(f_vocab)}
-    # +1 for lua, UNK, <r>, </r>, and <s>
+    vocab = {w.rstrip(): i+3 for i, w in enumerate(f_vocab)}
+    # +1 for lua, UNK, and </r>
     vocab['UNK'] = 1
 
 print('Loading dataset.')
 dataset = Layer.load(Layer.L1, ds=args.dataset)
 
 print('Assembling tokens.')
-max_seqlen = args.max_seqlen - 1 # <s> or </s>
+max_seqlen = args.max_seqlen - 1 # </s>
 recipe_ids = { 'train': [], 'val': [], 'test': [] }
 toks_lists = { 'train': [], 'val': [], 'test': [] }
 recipe_lens = { 'train': [], 'val': [], 'test': [] }
@@ -62,7 +62,7 @@ with open(utils.dspath(args.toks, ds=args.dataset)) as f_toks:
 
         part_toks = toks_lists[partition]
         for tok_sent in tok_sents:
-            toks = tok_sent.split(' ')[:max_seqlen] # -1 for <s> or </s>
+            toks = tok_sent.split(' ')[:max_seqlen]
             sent_lens[partition].append(len(toks))
             part_toks.append([vocab.get(t, vocab['UNK']) for t in toks])
 

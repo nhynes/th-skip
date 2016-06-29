@@ -8,7 +8,7 @@ import thisfile from require 'paths'
 import dofile from require 'moonscript'
 
 PROJ_ROOT = thisfile '../'
-UNK, SOR, EOR, SOS, EOS = 1, 2, 3, 4, 5
+UNK, EOR, EOS = 1, 2, 3
 
 torch.setdefaulttensortype 'torch.FloatTensor'
 

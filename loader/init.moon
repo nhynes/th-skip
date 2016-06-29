@@ -5,16 +5,9 @@ threads.serialization 'threads.sharedserialize'
 
 export dataLoader
 
-UNK, SOR, EOR, EOS = 1, 2, 3, 4
-
--- import dofile from require 'moonscript'
--- import thisfile from require 'paths'
-
--- dofile(thisfile 'DataLoader.moon')
-
 loadPartition = (dsH5, partition, opts) ->
   toks = dsH5\read('/toks_'..partition)\all!
-  toks\maskedFill(toks\gt(opts.vocabSize), UNK)
+  toks\maskedFill(toks\gt(opts.vocabSize), 1) -- UNK
   {
     -- ids: dsH5\read('/ids_'..partition)\all!
     -- rlens: dsH5\read('/rlens_'..partition)\all!
