@@ -18,6 +18,6 @@ _ = require 'moses'
 
       print 'Saving model to '..outfile..'...'
       model\training!
-      torch.save outfile, {opts: opts, model: serializer, state: saveState}
+      torch.save(outfile, {opts: opts, model: serializer, state: saveState})
 
       collectgarbage!

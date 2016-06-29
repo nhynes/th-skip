@@ -1,3 +1,5 @@
+require 'dpnn'
+
 SkipThoughtsDecoder, parent = torch.class('SkipThoughtsDecoder', 'nn.Container')
 
 SkipThoughtsDecoder.__init = (opts) =>
@@ -5,7 +7,7 @@ SkipThoughtsDecoder.__init = (opts) =>
 
   @dpnn_getParameters_found = true -- prevent dpnn's getParameters from searching table
 
-  @encoder = torch.load(opts.decoding)
+  @encoder = torch.load(opts.decoding).model\get(1)
 
   opts.wembDim = @encoder.lut.nOutput
   opts.embDim = @encoder.embDim
@@ -20,13 +22,13 @@ SkipThoughtsDecoder.updateOutput = (input) =>
   input: {sent} (N x sentlen+1, elems in [1, vocabSize])
   output: predSent (sentlen x N x vocabSize)
   ]==]
-  sentlen = input\size(2) - 1
-  @encoder\forward(input\narrow(2, 2, sentlen))   -- chop off EOS
-  @decoder\forward({input\narrow(2, 1, sentlen), @encoder.output})
+  {encInp, decInp} = input
+  @encoder\forward(encInp)
+  @output = @decoder\forward({decInp, @encoder.output})
   @output
 
 SkipThoughtsDecoder.updateGradInput = (input, gradOutput) =>
-  sentlen = input\size(2) - 1
-  @decoder\backward({input\narrow(2, 1, sentlen), @encoder.output}, gradOutput)
-  @gradInput = @encoder\backward(input\narrow(2, 2, sentlen), @decoder.gradInput)
+  {encInp, decInp} = input
+  @decoder\backward({decInp, @encoder.output}, gradOutput)
+  @gradInput = @encoder\backward(encInp, @decoder.gradInput)
   @gradInput
