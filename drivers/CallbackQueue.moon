@@ -1,4 +1,3 @@
-require 'torch'
 _ = require 'moses'
 
 CallbackQueue = torch.class('CallbackQueue')

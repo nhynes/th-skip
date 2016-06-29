@@ -1,5 +1,3 @@
-require 'torch'
-require 'cutorch'
 require 'optim'
 require 'sys'
 

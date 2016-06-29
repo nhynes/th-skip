@@ -1,5 +1,3 @@
-require 'cudnn'
-
 BGRU, parent = torch.class('cudnn.BGRU', 'cudnn.RNN')
 
 BGRU.__init = (inputSize, hiddenSize, numLayers, batchFirst) =>

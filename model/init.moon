@@ -1,3 +1,6 @@
+require 'cunn'
+require 'cudnn'
+
 import dofile from require 'moonscript'
 import thisfile from require 'paths'
 

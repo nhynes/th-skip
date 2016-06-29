@@ -1,7 +1,3 @@
-require 'torch'
-require 'cutorch'
-require 'nn'
-require 'rnn'
 require 'cunn'
 _ = require 'moses'
 

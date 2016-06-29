@@ -1,5 +1,3 @@
-require 'torch'
-require 'nn'
 import dofile from require 'moonscript'
 import thisfile from require 'paths'
 

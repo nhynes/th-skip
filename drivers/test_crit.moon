@@ -1,7 +1,6 @@
 require 'torch'
 require 'cutorch'
 require 'cunn'
-require 'rnn'
 
 import dofile from require 'moonscript'
 import thisfile from require 'paths'
