@@ -30,5 +30,5 @@ SkipThoughtsDecoder.updateOutput = (input) =>
 SkipThoughtsDecoder.updateGradInput = (input, gradOutput) =>
   {encInp, decInp} = input
   @decoder\backward({decInp, @encoder.output}, gradOutput)
-  @gradInput = @encoder\backward(encInp, @decoder.gradInput)
+  @gradInput = @encoder\backward(encInp, @decoder.gradInput[2])
   @gradInput

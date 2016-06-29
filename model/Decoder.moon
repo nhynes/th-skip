@@ -40,5 +40,5 @@ Decoder.updateOutput = (input) =>
   @output
 
 Decoder.updateGradInput = (input, gradOutput) =>
-  @gradInput = @model\backward(input, gradOutput)[2]
+  @gradInput = @model\backward(input, gradOutput)
   @gradInput

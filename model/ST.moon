@@ -34,6 +34,6 @@ SkipThoughts.updateGradInput = (input, gradOutput) =>
   {gradPrev, gradNext} = gradOutput
   @decPrev\backward({prevSent, @encoder.output}, gradPrev)
   @decNext\backward({nextSent, @encoder.output}, gradNext)
-  @gradEncoder\add(@decPrev.gradInput, 1, @decNext.gradInput)
+  @gradEncoder\add(@decPrev.gradInput[2], 1, @decNext.gradInput[2])
   @gradInput = @encoder\backward(sent, @gradEncoder)
   @gradInput
