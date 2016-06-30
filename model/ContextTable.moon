@@ -3,7 +3,7 @@ ContextTable, parent = torch.class('nn.ContextTable', 'nn.Module')
 
 ContextTable.__init = (lpad) =>
   parent.__init(self)
-  @gradInput = {torch.Tensor!, torch.Tensor!, torch.Tensor!}
+  @gradInput = {}
 
 ContextTable.updateOutput = (input) =>
   [==[
@@ -34,6 +34,8 @@ ContextTable.updateOutput = (input) =>
   @output
 
 ContextTable.updateGradInput = (input, gradOutput) =>
+  if #@gradInput < #input
+    @gradInput[i] = input[i].new! for i=#@gradInput+1,#input
   {base, ctx, lpad} = input
 
   seqlen, baseDim, ctxDim = base\size(1), base\size(3), ctx\size(2)
