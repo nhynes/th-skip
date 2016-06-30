@@ -12,6 +12,7 @@ dofile(thisfile 'Decoder.moon')
 
 init = (opts) ->
   if opts.decoding and opts.decoding ~= ''
+    require 'dpnn'
     dofile(thisfile 'STDecoder.moon')
     return SkipThoughtsDecoder
   else

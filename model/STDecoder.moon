@@ -1,5 +1,3 @@
-require 'dpnn'
-
 SkipThoughtsDecoder, parent = torch.class('SkipThoughtsDecoder', 'nn.Container')
 
 SkipThoughtsDecoder.__init = (opts) =>
