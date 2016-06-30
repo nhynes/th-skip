@@ -18,4 +18,14 @@ init = (opts) ->
     dofile(thisfile 'ST.moon')
     return SkipThoughts
 
+nn.Module.dontTrain = =>
+  @parameters = =>
+  @accGradParameters = =>
+  @dpnn_getParameters_found = true
+  self
+
+nn.Container.dontTrain = =>
+  @applyToModules (mod) -> mod\dontTrain!
+  nn.Module.dontTrain(self)
+
 { :init }
