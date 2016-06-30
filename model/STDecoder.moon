@@ -5,9 +5,7 @@ SkipThoughtsDecoder, parent = torch.class('SkipThoughtsDecoder', 'nn.Container')
 SkipThoughtsDecoder.__init = (opts) =>
   parent.__init(self)
 
-  @dpnn_getParameters_found = true -- prevent dpnn's getParameters from searching table
-
-  @encoder = torch.load(opts.decoding).model\get(1)
+  @encoder = torch.load(opts.decoding).model\get(1)\dontTrain!
 
   opts.wembDim = @encoder.lut.nOutput
   opts.embDim = @encoder.embDim
