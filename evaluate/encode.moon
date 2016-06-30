@@ -17,7 +17,7 @@ torch.setdefaulttensortype 'torch.FloatTensor'
 cmd = with torch.CmdLine!
   \option '-data', PROJ_ROOT..'/data/dataset.h5', 'path to dataset'
   \option '-partition', 'test', '(train|val|test)'
-  \option '-model', PROJ_ROOT..'/snaps/model.t7', 'path to model'
+  \option '-model', '', 'path to model'
   \option '-batchSize', 1024, 'max number of sentences to encode at once'
   \option '-out', 'encoded_sents', 'prefix to save encoded sentences'
 opts = cmd\parse arg
@@ -30,11 +30,11 @@ model = dofile PROJ_ROOT..'/model/init.moon'
 model.init{}
 snap = torch.load(opts.model)
 {:model, opts: modelOpts} = snap
-encoder = model\get(1).encoder\cuda!
-encoder\evaluate!
+encoder = with model\get(1)\cuda!
+  \evaluate!
 
 vocabSize = modelOpts.vocabSize
-encDim = modelOpts.dim * encoder\get(2).numDirections
+encDim = encoder.embDim
 
 model = nil
 collectgarbage!
