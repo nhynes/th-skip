@@ -20,7 +20,7 @@ cmd = with torch.CmdLine!
   \option '-encs', '', 'path to encoded sent vecs'
   \option '-model', '', 'path to model'
   \option '-vocab', PROJ_ROOT..'/data/instructions_w2v_vocab.txt', 'path to model'
-  \option '-batchSize', 3, 'max number of sentences to encode at once'
+  \option '-batchSize', 1024, 'max number of sentences to encode at once'
   \option '-out', PROJ_ROOT..'/data/decoded_sents', 'prefix to save decoded sentences'
   \option '-beam', 1, 'beam search width'
 opts = cmd\parse arg
@@ -91,22 +91,17 @@ decRNN.cellInput = torch.CudaTensor(1, bbs, decRNN.hiddenSize)
 -- stochastic impl
 N = encs\size(1)
 for i=1,encs\size(1),batchSize
-  if i > 10
-    break
-
   decRNN.hiddenInput\zero!
   decRNN.cellInput\zero!
 
-  batchEncs = encs\narrow(1, i, math.min(batchSize, N-i+1))
-  -- TODO: view and copy to have multiple instances of vec for beam
-  gpuEncs\copy(batchEncs)
+  bs = math.min(batchSize, N-i+1)
+  with gpuEncs\resize(bs * opts.beam, stDim)
+    \copy(encs\narrow(1, i, bs)\view(bs, 1, stDim)\expand(bs, opts.beam, stDim))
 
   nextToks\fill(EOS)
   for t=1,maxSentlen
     preds = decoder\forward({nextToks, gpuEncs})
-    -- torch.multinomial(nextToks, preds, 1)
-    s, amax = torch.sort(preds, 2, true)
-    nextToks\copy(amax\select(2, 1))
+    torch.multinomial(nextToks, preds, 1)
     gpuSents\select(2, t)\copy(nextToks)
 
     decRNN.hiddenInput\copy(decRNN.hiddenOutput)
@@ -114,6 +109,6 @@ for i=1,encs\size(1),batchSize
 
   sents\copy(gpuSents)
   for n=1,sents\size(1)
+    if n % opts.beam == 1
+      print('\n'..(i+math.floor(n/opts.beam))..':')
     print convertI2W(sents[n])
-    if n % opts.beam == 0
-      print('')
