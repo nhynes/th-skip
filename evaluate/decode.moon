@@ -22,14 +22,14 @@ cmd = with torch.CmdLine!
   \option '-vocab', PROJ_ROOT..'/data/instructions_w2v_vocab.txt', 'path to model'
   \option '-batchSize', 1024, 'max number of sentences to encode at once'
   \option '-out', PROJ_ROOT..'/data/decoded_sents', 'prefix to save decoded sentences'
-  \option '-beam', 1, 'beam search width'
+  \option '-samples', 1, 'number of decodings for each sentence'
+  \option '-greedy', 0, 'greedy or stochastic (greedy -> samples=1)'
 opts = cmd\parse arg
 
 ---------------------------------------------------------------------------------------
 -- Load decoder
 ---------------------------------------------------------------------------------------
 
-print 'loading model'
 dofile(PROJ_ROOT..'/model/init.moon').init{decoding: opts.model}
 {:model, opts: modelOpts} = torch.load(opts.model)
 
@@ -54,7 +54,6 @@ i2w = {'UNK', '</r>'}
 i2w[#i2w+1] = word for word in string.gmatch(vocab, '[^\t\n]+')
 
 -- load encoded sentences
-print 'loading sentences'
 encs = torch.load(opts.encs).encs
 
 convertI2W = (v) ->
@@ -76,8 +75,9 @@ convertI2W = (v) ->
 collectgarbage!
 
 batchSize = opts.batchSize
+opts.samples = opts.greedy == 1 and 1 or opts.samples
 
-bbs = batchSize * opts.beam
+bbs = batchSize * opts.samples
 stDim = encs\size(2)
 gpuEncs = torch.CudaTensor(bbs, stDim)
 nextToks = torch.CudaTensor(bbs, 1)
@@ -88,20 +88,23 @@ decRNN = decoder.rnn
 decRNN.hiddenInput = torch.CudaTensor(1, bbs, decRNN.hiddenSize)
 decRNN.cellInput = torch.CudaTensor(1, bbs, decRNN.hiddenSize)
 
--- stochastic impl
 N = encs\size(1)
 for i=1,encs\size(1),batchSize
   decRNN.hiddenInput\zero!
   decRNN.cellInput\zero!
 
   bs = math.min(batchSize, N-i+1)
-  with gpuEncs\resize(bs * opts.beam, stDim)
-    \copy(encs\narrow(1, i, bs)\view(bs, 1, stDim)\expand(bs, opts.beam, stDim))
+  with gpuEncs\resize(bs * opts.samples, stDim)
+    \copy(encs\narrow(1, i, bs)\view(bs, 1, stDim)\expand(bs, opts.samples, stDim))
 
   nextToks\fill(EOS)
   for t=1,maxSentlen
     preds = decoder\forward({nextToks, gpuEncs})
-    torch.multinomial(nextToks, preds, 1)
+    if opts.greedy == 1
+      p, mltoks = torch.sort(preds, 2, true)
+      nextToks\copy(mltoks\select(2, 1))
+    else
+      torch.multinomial(nextToks, preds, 1)
     gpuSents\select(2, t)\copy(nextToks)
 
     decRNN.hiddenInput\copy(decRNN.hiddenOutput)
@@ -109,6 +112,6 @@ for i=1,encs\size(1),batchSize
 
   sents\copy(gpuSents)
   for n=1,sents\size(1)
-    if n % opts.beam == 1
-      print('\n'..(i+math.floor(n/opts.beam))..':')
+    if n % opts.samples == 1
+      print('\n'..(i+math.floor(n/opts.samples))..':')
     print convertI2W(sents[n])
