@@ -51,7 +51,13 @@ require 'sys'
       state.trainLoss = 0
       state.timer = 0
 
-    assert params\storage! == model\parameters![1]\storage!
+    paramsStore = params\storage!
+    assert paramsStore == model\parameters![1]\storage!
+    if opts.decoding ~= ''
+      assert paramsStore == model.decoder\parameters![1]\storage!
+      assert paramsStore ~= model.decoder.lut.weight\storage!
+      assert paramsStore ~= model.encoder.lut.weight\storage!
+      assert paramsStore ~= model.encoder.rnn.weight\storage!
 
   ->
     model\training!
