@@ -8,6 +8,7 @@ LookupTableW2V, parent = torch.class('nn.LookupTableW2V', 'nn.LookupTable')
 LookupTableW2V.__init = (w2vPath, nWords, nRandInit=0) =>
   w2v = loadW2V(w2vPath)
   @nOutput = w2v\size(2)
+  @nRandInit = nRandInit
 
   nWordsW2V = math.min(nWords-nRandInit, w2v\size(1))
   @nIndex = nWordsW2V + nRandInit
@@ -26,3 +27,6 @@ LookupTableW2V.updateGradInput = (input, gradOutput) =>
 
 LookupTableW2V.accGradParameters = (input, gradOutput, scale) =>
   parent.accGradParameters(self, input, gradOutput\transpose(1, 2), scale)
+  @gradWeight\sub(@nRandInit+1, -1)\zero! if @noTrainW2V
+
+LookupTableW2V.dontTrainW2V = => @noTrainW2V = true
