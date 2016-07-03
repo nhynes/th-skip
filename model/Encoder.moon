@@ -6,7 +6,7 @@ Encoder.__init = (opts) =>
 
   @lut = nn.LookupTableW2V(opts.w2v, opts.vocabSize, 2) -- UNK and </r> are learned
 
-  @rnn = cudnn.BGRU(@lut.nOutput, opts.dim, opts.nRNNs)
+  @rnn = cudnn[opts.bidir == 1 and 'BGRU' or 'GRU'](@lut.nOutput, opts.dim, opts.nRNNs)
 
   @embDim = @rnn.numDirections * opts.dim
 

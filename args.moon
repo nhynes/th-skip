@@ -22,6 +22,7 @@ parse = (arg={}) ->
 
     -- Model
     \option '-dim', 1200, 'RNN dimension'
+    \option '-bidir', 0, 'Use bidirectional RNN?'
     \option '-sentlen', 40, 'maximum sequence length'
     \option '-nRNNs', 1, 'number of stacked RNNs'
     \option '-vocabSize', 20000, 'how many words to use'
