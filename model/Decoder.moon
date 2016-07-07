@@ -15,7 +15,7 @@ Decoder.__init = (opts, sharedModules) =>
     @wordDec = nn.TemporalConvolution(opts.dim, @lut.nIndex, 1)
     -- using cudnn causes a ~5% drop in accuracy but is ~.15s/batch faster
 
-  @rnn = cudnn.GRU(@lut.nOutput + opts.embDim, opts.dim, opts.nRNNs)
+  @rnn = cudnn[opts.rnnType\upper!](@lut.nOutput + opts.embDim, opts.dim, opts.nDecRNNs)
 
   @model = with nn.Sequential!
     \add with nn.ParallelTable!
