@@ -75,7 +75,7 @@ for part, toks_lists in toks_lists.iteritems():
 
 print('Writing out data.')
 if args.out_suffix: suff = '_' + args.out_suffix
-with h5py.File(path.join(DATA_ROOT, 'dataset%s.h5' % args.out_suffix), 'w') as f_ds:
+with h5py.File(path.join(DATA_ROOT, 'dataset%s.h5' % suff), 'w') as f_ds:
     for part in recipe_ids:
         f_ds.create_dataset('/ids_%s' % part, data=recipe_ids[part])
         f_ds.create_dataset('/toks_%s' % part, data=recipe_toks[part])

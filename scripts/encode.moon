@@ -19,7 +19,7 @@ cmd = with torch.CmdLine!
   \option '-partition', 'test', '(train|val|test)'
   \option '-model', '', 'path to model'
   \option '-batchSize', 1024, 'max number of sentences to encode at once'
-  \option '-out', 'encoded_sents', 'prefix to save encoded sentences'
+  \option '-out', 'encoded_sents_test.t7', 'path to save encoded sentences'
 opts = cmd\parse arg
 
 ---------------------------------------------------------------------------------------
@@ -69,6 +69,9 @@ toks\maskedFill(toks\gt(vocabSize), UNK)
 data =
   toks: toks
   slens: dsH5\read('/slens_'..opts.partition)\all!
+  ids: dsH5\read('/ids_'..opts.partition)\all!
+  rbps: dsH5\read('/rbps_'..opts.partition)\all!
+  rlens: dsH5\read('/rlens_'..opts.partition)\all!
 dsH5\close!
 groupByLen(data)
 
@@ -114,5 +117,4 @@ for sentlen in *_.reverse(data.lengths)
 
 _, sortInds = torch.sort(inds)
 encs = encs\index(1, sortInds)
-outfile = opts.out..'_'..opts.partition..'.t7'
-torch.save(outfile, {encs: encs, opts: opts})
+torch.save(opts.out, {encs: encs, opts: opts, ids: data.ids, rlens: data.rlens, rbps: data.rbps})
