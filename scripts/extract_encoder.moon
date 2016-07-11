@@ -13,4 +13,6 @@ encoder = with nn.Serial(model\get(1).encoder)
   \evaluate! if eval
   \lightSerial! if eval else \mediumSerial!
 
+opts.extractedFrom = snap
+
 torch.save(outfile, {model: encoder, :opts})
