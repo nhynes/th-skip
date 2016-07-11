@@ -4,7 +4,8 @@ _ = require 'moses'
 import dofile from require 'moonscript'
 import thisfile from require 'paths'
 
-dofile(thisfile 'LMCriterion.moon')
+dofile(thisfile 'MaskedCrossEntropyCriterion.moon')
+dofile(thisfile 'SeqMaskedCrossEntropyCriterion.moon')
 
 init = (model, workers, opts) ->
   crit = nil
@@ -12,8 +13,8 @@ init = (model, workers, opts) ->
     crit = nn.LMCriterion!
   else
     crit = with nn.ParallelCriterion!
-      \add nn.LMCriterion!
-      \add nn.LMCriterion!
+      \add nn.SeqMaskedCrossEntropyCriterion!
+      \add nn.SeqMaskedCrossEntropyCriterion!
 
   state = _.defaults opts.savedState or {},
       t: 0
