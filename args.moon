@@ -18,7 +18,7 @@ parse = (arg={}) ->
 
     \option '-nworkers', 4, 'number of data loading threads'
     \option '-gpu', 0, 'index of the GPU to use'
-    \option '-batchSize', 384, 'mini-batch size'
+    \option '-batchSize', 300, 'mini-batch size'
 
     -- Model
     \option '-rnnType', 'lstm', 'lstm or gru'
@@ -28,6 +28,7 @@ parse = (arg={}) ->
     \option '-nEncRNNs', 1, 'number of stacked encoder RNNs'
     \option '-nDecRNNs', 1, 'number of stacked decoder RNNs'
     \option '-vocabSize', 20000, 'how many words to use'
+    \option '-sameScale', 0.5, 'scale for sameDec->encoder gradient'
 
     -- Training
     \option '-lr', 0.001, 'learning rate'

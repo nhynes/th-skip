@@ -46,7 +46,7 @@ DataLoader.makebatch = (partition='train', seed) =>
   [==[
     1. pick a sentence length
     <until full minibatch>
-    2. grab a sentence, add </s>
+    2. grab a sentence, add </s> and </s>
     3. grab prev and next sentences
       if sentence is on a recipe boundary (check rbp), prev sentence is </r>
       if next sentence is on a boundary, next sentence is </r>
@@ -67,7 +67,7 @@ DataLoader.makebatch = (partition='train', seed) =>
   maxSentLen = data.lengths[#data.lengths] + 2 -- +2 for </s> ... </s>
 
   -- batchIds = torch.CharTensor(batchSize, 11) -- bin search rbps for selInd
-  batchSents = torch.LongTensor(batchSize, sentlen+1)\zero! -- +1 for </s>
+  batchSents = torch.LongTensor(batchSize, sentlen+2)\zero! -- +1 for </s> ... </s>
   batchPrevSents = torch.LongTensor(batchSize, maxSentLen)\zero!
   batchNextSents = torch.LongTensor(batchSize, maxSentLen)\zero!
 
@@ -85,7 +85,7 @@ DataLoader.makebatch = (partition='train', seed) =>
   for i=1,batchSize
     selInd = selInds[i]
 
-    batchSents[i]\sub(1, -2)\copy(toks[selInd]\sub(1, sentlen))
+    batchSents[i]\sub(2, -2)\copy(toks[selInd]\sub(1, sentlen))
 
     prevSent = batchPrevSents[i]\sub(2, -1)
     nextSent = batchNextSents[i]\sub(2, -1)
@@ -110,7 +110,8 @@ DataLoader.makebatch = (partition='train', seed) =>
       nextSent[slen+1] = EOS
       maxNext = math.max(maxNext, slen)
 
-  batchSents\select(2, sentlen+1)\fill(EOS)
+  batchSents\select(2, 1)\fill(EOS)
+  batchSents\select(2, sentlen+2)\fill(EOS)
 
   batchPrevSents = batchPrevSents\narrow(2, 1, maxPrev+2)
   batchPrevSents\select(2, 1)\fill(EOS)

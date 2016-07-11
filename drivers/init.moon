@@ -13,6 +13,7 @@ init = (model, workers, opts) ->
     crit = with nn.ParallelCriterion!
       \add crit
       \add crit\clone!
+      \add crit\clone!
 
   state = _.defaults opts.savedState or {},
       t: 0
@@ -36,7 +37,11 @@ init = (model, workers, opts) ->
       gpuNextSents\resize(batchNextSents\size!)\copy(batchNextSents)
 
       input = {gpuSents, gpuPrevSents[{{}, {1, -2}}], gpuNextSents[{{}, {1, -2}}]}
-      target = {gpuPrevSents[{{}, {2, -1}}], gpuNextSents[{{}, {2, -1}}]}
+      target = {
+        gpuPrevSents[{{}, {2, -1}}]
+        gpuSents[{{}, {2, -1}}]
+        gpuNextSents[{{}, {2, -1}}]
+      }
 
       input, target
 
