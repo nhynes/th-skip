@@ -85,8 +85,8 @@ gpuSents = torch.CudaTensor(bbs, maxSentlen)
 sents = torch.LongTensor(bbs, maxSentlen)
 
 decRNN = decoder.rnn
-decRNN.hiddenInput = torch.CudaTensor(1, bbs, decRNN.hiddenSize)
-decRNN.cellInput = torch.CudaTensor(1, bbs, decRNN.hiddenSize)
+decRNN.hiddenInput = torch.CudaTensor(decRNN.numLayers, bbs, decRNN.hiddenSize)
+decRNN.cellInput = torch.CudaTensor(decRNN.numLayers, bbs, decRNN.hiddenSize)
 
 N = encs\size(1)
 for i=1,encs\size(1),batchSize
