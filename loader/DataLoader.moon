@@ -40,7 +40,7 @@ DataLoader.__init = (dataTrain, dataVal, opts) =>
   groupByLen(dataTrain)
   groupByLen(dataVal)
 
-DataLoader.makebatch = (partition='train') =>
+DataLoader.makebatch = (partition='train', seed) =>
   data = partition == 'val' and @dataVal or @dataTrain
 
   [==[
@@ -52,6 +52,11 @@ DataLoader.makebatch = (partition='train') =>
       if next sentence is on a boundary, next sentence is </r>
     4. add leading and trailing </s>
   ]==]
+
+  randState = nil
+  if seed ~= nil
+    randState = torch.getRNGState!
+    torch.manualSeed(seed)
 
   sentlen = data.lengths[torch.multinomial(data.lenFreqs, 1)[1]]
   sentlenInds = data.indsByLen[sentlen]
@@ -113,6 +118,8 @@ DataLoader.makebatch = (partition='train') =>
   batchNextSents\select(2, 1)\fill(EOS)
 
   collectgarbage!
+
+  torch.setRNGState(randState) if randState ~= nil
 
   batchSents, batchPrevSents, batchNextSents
 

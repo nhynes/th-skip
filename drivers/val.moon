@@ -1,19 +1,17 @@
-VALBATCHES = 100
-
 (model, workers, opts, state) ->
   {:prepBatch, :crit} = state
+
+  valBatches = math.ceil(50000 / opts.batchSize)
 
   ->
     model\evaluate!
 
-    saveseed = torch.random!
-    math.randomseed(1234)
-    torch.manualSeed(1234)
+    randState = torch.getRNGState!
 
     valLoss = 0
 
-    for i=1,VALBATCHES
-      workers\addjob (-> dataLoader\makebatch 'val'),
+    for i=1,valBatches
+      workers\addjob (-> dataLoader\makebatch 'val', torch.random!),
         (...) ->
           input, target = prepBatch(...)
           model\forward(input)
@@ -21,10 +19,9 @@ VALBATCHES = 100
 
     workers\synchronize!
 
-    math.randomseed(saveseed)
-    torch.manualSeed(saveseed)
+    torch.setRNGState(randState)
 
-    valLoss /= VALBATCHES
+    valLoss /= valBatches
 
     state.valLoss = valLoss
     print string.format('Val loss: %g', valLoss)
