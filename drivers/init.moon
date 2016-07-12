@@ -5,16 +5,14 @@ import dofile from require 'moonscript'
 import thisfile from require 'paths'
 
 dofile(thisfile 'MaskedCrossEntropyCriterion.moon')
-dofile(thisfile 'SeqMaskedCrossEntropyCriterion.moon')
+dofile(thisfile 'SIPCriterion.moon')
 
 init = (model, workers, opts) ->
-  crit = nil
-  if opts.decoding ~= ''
-    crit = nn.LMCriterion!
-  else
+  crit = nn.SIPCriterion(nn.MaskedCrossEntropyCriterion!)
+  if opts.decoding == ''
     crit = with nn.ParallelCriterion!
-      \add nn.SeqMaskedCrossEntropyCriterion!
-      \add nn.SeqMaskedCrossEntropyCriterion!
+      \add crit
+      \add crit\clone!
 
   state = _.defaults opts.savedState or {},
       t: 0
