@@ -17,10 +17,13 @@ groupByLen = (data) ->
     indsByLen[slen] = ibrl
 
   lengths = _.keys indsByLen
+  for len, inds in pairs indsByLen
+    lengths[#lengths+1] = len
+    indsByLen[len] = torch.LongTensor(inds)
   table.sort lengths
 
   lenFreqs = torch.zeros(#lengths)
-  lenFreqs[i] = #indsByLen[lengths[i]] for i=1,#lengths -- freq of each index -> len
+  lenFreqs[i] = indsByLen[lengths[i]]\size(1) for i=1,#lengths
 
   data.lengths = lengths
   data.indsByLen = indsByLen
@@ -52,9 +55,9 @@ DataLoader.makebatch = (partition='train') =>
 
   sentlen = data.lengths[torch.multinomial(data.lenFreqs, 1)[1]]
   sentlenInds = data.indsByLen[sentlen]
-  batchSize = math.min(#sentlenInds, @batchSize)
+  batchSize = math.min(sentlenInds\size(1), @batchSize)
 
-  selIndInds = torch.randperm(#sentlenInds)\sub(1, batchSize)
+  selIndInds = torch.randperm(sentlenInds\size(1))\sub(1, batchSize)\long!
 
   maxSentLen = data.lengths[#data.lengths] + 2 -- +2 for </s> ... </s>
 
@@ -72,11 +75,12 @@ DataLoader.makebatch = (partition='train') =>
   maxPrev = 0
   maxNext = 0
 
+  selInds = sentlenInds\index(1, selIndInds)
+
   for i=1,batchSize
-    selInd = sentlenInds[selIndInds[i]]
+    selInd = selInds[i]
 
     batchSents[i]\sub(1, -2)\copy(toks[selInd]\sub(1, sentlen))
-    batchSents\select(2, sentlen+1)\fill(EOS)
 
     prevSent = batchPrevSents[i]\sub(2, -1)
     nextSent = batchNextSents[i]\sub(2, -1)
@@ -100,6 +104,8 @@ DataLoader.makebatch = (partition='train') =>
       nextSent\sub(1, -2)\copy(toks[selInd+1])
       nextSent[slen+1] = EOS
       maxNext = math.max(maxNext, slen)
+
+  batchSents\select(2, sentlen+1)\fill(EOS)
 
   batchPrevSents = batchPrevSents\narrow(2, 1, maxPrev+2)
   batchPrevSents\select(2, 1)\fill(EOS)
