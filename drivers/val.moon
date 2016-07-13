@@ -7,6 +7,7 @@
     model\evaluate!
 
     randState = torch.getRNGState!
+    torch.manualSeed(1234)
 
     valLoss = 0
 
