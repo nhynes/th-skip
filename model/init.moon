@@ -4,7 +4,6 @@ require 'cudnn'
 import dofile from require 'moonscript'
 import thisfile from require 'paths'
 
-dofile(thisfile 'BGRU.moon')
 dofile(thisfile 'ContextTable.moon')
 dofile(thisfile 'LookupTableW2V.moon')
 dofile(thisfile 'Encoder.moon')
