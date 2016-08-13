@@ -6,6 +6,7 @@ import thisfile from require 'paths'
 
 dofile(thisfile 'ContextTable.moon')
 dofile(thisfile 'LookupTableW2V.moon')
+dofile(thisfile 'Din.moon')
 dofile(thisfile 'Encoder.moon')
 dofile(thisfile 'Decoder.moon')
 

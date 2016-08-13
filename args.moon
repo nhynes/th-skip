@@ -22,10 +22,10 @@ parse = (arg={}) ->
 
     -- Model
     \option '-rnnType', 'lstm', 'lstm or gru'
-    \option '-dim', 1200, 'RNN dimension'
+    \option '-dim', 512, 'RNN dimension'
     \option '-bidir', 0, 'Use bidirectional RNN?'
     \option '-sentlen', 40, 'maximum sequence length'
-    \option '-nEncRNNs', 1, 'number of stacked encoder RNNs'
+    \option '-nEncRNNs', 2, 'number of stacked encoder RNNs'
     \option '-nDecRNNs', 1, 'number of stacked decoder RNNs'
     \option '-vocabSize', 20000, 'how many words to use'
 

@@ -11,24 +11,39 @@ Encoder.__init = (opts) =>
 
   @embDim = @rnn.numDirections * opts.dim
 
-  @model = with nn.Sequential!
+  @means = nn.Identity!
+  @stds = nn.Linear(@embDim, @embDim)
+  @noise = with nn.Sequential!
+    \add @stds
+    \add nn.Exp!
+    \add nn.HardTanh(0, 20)
+    \add nn.Din!
+
+  @encoder = with nn.Sequential!
     \add @lut
     \add @rnn
     \add nn.Select(1, -1)
+    \add with nn.ConcatTable!
+      \add @means
+      \add @noise
+
+  @sum = with nn.Sequential!
+    \add nn.CAddTable!
     \add nn.Normalize(2)
 
-  @modules = {@model}
-
-  collectgarbage!
+  @modules = {@encoder, @sum}
 
 Encoder.updateOutput = (input) =>
   [==[
   input: toks (N x sentlen, elems in [1, vocabSize])
   output: sentVecs (N x embDim)
   ]==]
-  @output = @model\forward(input)
-  @output
+  @encoder\forward(input)
+  @output = @sum\forward(@encoder.output)
+  return @output
 
 Encoder.updateGradInput = (input, gradOutput) =>
-  @gradInput = @model\backward(input, gradOutput)
+  @sum\backward(@encoder.output, gradOutput)
+  @sum.gradInput[1]\add(@means.output) -- enforce prior over mu
+  @gradInput = @encoder\backward(input, @sum.gradInput)
   @gradInput
