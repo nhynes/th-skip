@@ -17,9 +17,7 @@ groupByLen = (data) ->
     indsByLen[slen] = ibrl
 
   lengths = _.keys indsByLen
-  for len, inds in pairs indsByLen
-    lengths[#lengths+1] = len
-    indsByLen[len] = torch.LongTensor(inds)
+  indsByLen[len] = torch.LongTensor(inds) for len, inds in pairs indsByLen
   table.sort lengths
 
   lenFreqs = torch.zeros(#lengths)
