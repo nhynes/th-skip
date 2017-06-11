@@ -6,32 +6,34 @@ import os.path as path
 
 import h5py
 import numpy as np
-
-from utils import Layer
-import utils
+import json
+import os
 
 PROJ_ROOT = path.abspath(path.join(path.dirname(__file__), '..'))
 DATA_ROOT = path.join(PROJ_ROOT, 'data')
 
+def load_layer(name, dataset):
+    with open(os.path.join(dataset,name + '.json')) as f_layer:
+        return json.load(f_layer)
+
 # =====================================================================================
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset', choices=('dataset', 'r1m'), default='r1m')
-parser.add_argument('--vocab', default='models/w2v/instructions/instructions_w2v_vocab.txt')
-parser.add_argument('--toks', default='tokenized/tokenized_instructions.txt')
+parser.add_argument('--dataset', default='/data/vision/torralba/health-habits/im2recipe/recipe1M')
+parser.add_argument('--vocab', default='vocab.txt')
+parser.add_argument('--toks', default='tokenized_instructions_.txt')
 parser.add_argument('--max-seqlen', default=40, type=int)
-
 parser.add_argument('--out-suffix', default='')
 args = parser.parse_args()
 # =====================================================================================
 
 # load vocab
-with open(utils.dspath(args.vocab, ds=args.dataset)) as f_vocab:
+with open(os.path.join(DATA_ROOT,args.vocab),'r') as f_vocab:
     vocab = {w.rstrip(): i+3 for i, w in enumerate(f_vocab)}
     # +1 for lua, UNK, and </r>
     vocab['UNK'] = 1
 
 print('Loading dataset.')
-dataset = Layer.load(Layer.L1, ds=args.dataset)
+dataset = load_layer('layer1',args.dataset)
 
 print('Assembling tokens.')
 max_seqlen = args.max_seqlen - 1 # </s>
@@ -40,13 +42,14 @@ toks_lists = { 'train': [], 'val': [], 'test': [] }
 recipe_lens = { 'train': [], 'val': [], 'test': [] }
 sent_lens = { 'train': [], 'val': [], 'test': [] }
 rbp = { 'train': [], 'val': [], 'test': [] } # recipe base pointers (boundaries)
-with open(utils.dspath(args.toks, ds=args.dataset)) as f_toks:
+with open(os.path.join(DATA_ROOT,args.toks),'r') as f_toks:
     for i, tok_recipe in enumerate(f_toks):
         tok_recipe = tok_recipe.strip()
 
         recipe = dataset[i]
         partition = recipe['partition']
-        recipe_ids[partition].append(recipe['id'])
+
+        recipe_ids[partition].append(recipe['id'].encode('utf8'))
 
         part_rbp = rbp[partition]
         if len(part_rbp) == 0:
@@ -55,8 +58,7 @@ with open(utils.dspath(args.toks, ds=args.dataset)) as f_toks:
             rbp[partition].append(rbp[partition][-1] + recipe_lens[partition][-1])
 
         tok_sents = tok_recipe.split('\t')
-        rlen = len(recipe['instructions'])
-        assert len(tok_sents) == rlen
+        rlen = len(tok_sents)
 
         recipe_lens[partition].append(rlen)
 

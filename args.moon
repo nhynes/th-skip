@@ -14,7 +14,8 @@ parse = (arg={}) ->
 
     -- Data
     \option '-dataset', DATA_DIR..'/dataset.h5', 'path to dataset'
-    \option '-w2v', DATA_DIR..'/instructions_w2v.bin', 'path to w2v'
+    \option '-w2v', DATA_DIR..'/vocab.bin', 'path to w2v'
+
 
     \option '-nworkers', 4, 'number of data loading threads'
     \option '-gpu', 0, 'index of the GPU to use'
