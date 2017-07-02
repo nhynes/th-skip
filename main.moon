@@ -22,6 +22,7 @@ theModel = nil
 if paths.filep opts.loadsnap
   print 'Loading model from '..opts.loadsnap
   require 'dpnn'
+  _ = require 'moses'
   snap = torch.load(opts.loadsnap)
   theModel = snap.model\get(1)
   newOpts = _.pick(opts, 'loadsnap', 'niters', 'dispfreq', 'valfreq', 'savefreq')

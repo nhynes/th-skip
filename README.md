@@ -1,7 +1,3 @@
-The code described below can be found at:
-
-```/data/vision/torralba/health-habits/amaia/workspace/torch/th_skip/ ```
-
 # Skip-instructions
 
 Torch implementation of skip-thoughts model from the paper:
@@ -29,6 +25,7 @@ luarocks install torch
 luarocks install nn
 luarocks install optim
 luarocks install rnn
+luarocks install moses
 luarocks install moonscript
 ```
 
